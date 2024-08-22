@@ -1,0 +1,38 @@
+{
+    "name": "davor/news-recommendation",
+    "description": "This package provides AI generated recommendation tags for articles and stores them",
+    "type": "composer-plugin",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Hoks\\NewsRecommendation\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Davor Holender",
+            "email": "davor.holender@cubes.rs"
+        },
+        {
+            "name": "Lazar Tanaskovic",
+            "email": "lazar.tanaskovic@cubes.rs"
+        }
+    ],
+    "require": {
+        "php": "^7.2|^8.0",
+        "guzzlehttp/guzzle": "^6.3|^7.0.0",
+        "intervention/image": "^2.5"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "extra": {
+        "laravel": {
+            "providers":[
+                "Hoks\\NewsRecommendation\\NewsRecommendationServiceProvider"
+            ],
+            "aliases":{
+                "OpenAI" : "Hoks\\NewsRecommendation\\Facades\\OpenAI"
+            }
+        }
+    }
+}
