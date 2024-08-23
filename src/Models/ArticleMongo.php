@@ -1,6 +1,6 @@
 <?php
 
-namespace Hoks\NewsRecommendations\Models;
+namespace Hoks\NewsRecommendation\Models;
 
 use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
 
@@ -12,7 +12,7 @@ class ArticleMongo extends Eloquent {
 
     public function __construct(array $attributes = [])
     {
-        $this->fillable = config('newsrecommendations.required_fields');
+        $this->fillable = config('newsrecommendation.required_fields');
         parent::__construct($attributes);
     }
 

@@ -1,9 +1,9 @@
 <?php
 
-namespace Hoks\NewsRecommendations\Commands;
+namespace Hoks\NewsRecommendation\Commands;
 
 use Illuminate\Console\Command;
-use Hoks\NewsRecommendations\Models\ArticleMongo;
+use Hoks\NewsRecommendation\Models\ArticleMongo;
 use Carbon\Carbon;
 
 class ImportPublishedArticlesPeriodicaly extends Command
@@ -25,7 +25,7 @@ class ImportPublishedArticlesPeriodicaly extends Command
     public function handle()
     {
 
-        $new_articles = \DB::table(config('newsrecommendations.articles_table_name'))->where('published', 1)->where('deleted_at', null)->where('publish_at', '>=', Carbon::now()->subMinutes(10))->get();
+        $new_articles = \DB::table(config('newsrecommendation.articles_table_name'))->where('published', 1)->where('deleted_at', null)->where('publish_at', '>=', Carbon::now()->subMinutes(10))->get();
 
         foreach($new_articles as $article) {
             $existingArticle = ArticleMongo::where('article_id', $article->id)->first();
@@ -43,28 +43,28 @@ class ImportPublishedArticlesPeriodicaly extends Command
 
         $finalData = [];
 
-        $website = \DB::table(config('newsrecommendations.websites_table_name'))->where('id', $data->site_id)->first();
+        $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', $data->site_id)->first();
         $domain = $website->url;
 
-        if(config('newsrecommendations.use_publish')) {
-            $article = \DB::table(config('newsrecommendations.publish_table_name'))->where('article_id', $data->id)->first();
+        if(config('newsrecommendation.use_publish')) {
+            $article = \DB::table(config('newsrecommendation.publish_table_name'))->where('article_id', $data->id)->first();
             if(isset($article) && !empty($article)) {
-                $category = \DB::table(config('newsrecommendations.categories_table_name'))->where('id', $article->category_id)->first();
+                $category = \DB::table(config('newsrecommendation.categories_table_name'))->where('id', $article->category_id)->first();
                 $categoryName = $category->name;
                 $categoryUrl = $domain . '/' . \Str::slug($categoryName);
 
-                $subcategory = \DB::table(config('newsrecommendations.categories_table_name'))->where('subcategory_id', $article->subcategory_id)->first();
+                $subcategory = \DB::table(config('newsrecommendation.categories_table_name'))->where('subcategory_id', $article->subcategory_id)->first();
                 $subcategoryName = $subcategory->name;
                 $subcategoryUrl = $domain . '/' . \Str::slug($categoryName) . '/' . \Str::slug($subcategoryName);
             }
         } else {
-            $category = \DB::table(config('newsrecommendations.categories_table_name'))->where('id', $data->category_id)->first();
+            $category = \DB::table(config('newsrecommendation.categories_table_name'))->where('id', $data->category_id)->first();
             if(isset($category) && !empty($category)) {
                 $categoryName = $category->name;
                 $categoryUrl = $domain . '/' . \Str::slug($categoryName);
             }
 
-            $subcategory = \DB::table(config('newsrecommendations.categories_table_name'))->where('id', $data->subcategory_id)->first();
+            $subcategory = \DB::table(config('newsrecommendation.categories_table_name'))->where('id', $data->subcategory_id)->first();
             if(isset($subcategory) && !empty($subcategory)) {
                 $subcategoryName = $subcategory->name;
                 $subcategoryUrl = $domain . '/' . \Str::slug($categoryName) . '/' . \Str::slug($subcategoryName);
@@ -73,7 +73,7 @@ class ImportPublishedArticlesPeriodicaly extends Command
         $articleUrl = $domain . '/' . \Str::slug($categoryName) . '/' . \Str::slug($subcategoryName) . '/' . $data->id . '/' . \Str::slug(!empty($data->og_title) ? $data->og_title : $data->heading) .'/vest';
 
 
-        foreach(config('newsrecommendations.required_fields') as $column) {
+        foreach(config('newsrecommendation.required_fields') as $column) {
 
             if($column == 'tags') {
                 $text = $data->text;

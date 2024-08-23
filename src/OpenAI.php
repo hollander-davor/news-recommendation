@@ -1,6 +1,6 @@
 <?php
 
-namespace Hoks\NewsRecommendations;
+namespace Hoks\NewsRecommendation;
 
 use GuzzleHttp\Client;
 
@@ -106,7 +106,7 @@ class OpenAI{
     public function client(string $uri,int $timeout = 30,string $model = 'gpt-4-turbo'){
         $client = new Client(['base_uri' => 'https://api.openai.com/v1/']);
         $headers = [
-            "Authorization" => "Bearer ".config('newsrecommendations.openai-api-key'),
+            "Authorization" => "Bearer ".config('newsrecommendation.openai-api-key'),
             "Content-Type" => "application/json",
             "timeout" => $timeout,
         ];
