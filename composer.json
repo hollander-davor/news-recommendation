@@ -5,7 +5,7 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Hoks\\NewsRecommendation\\": "src/"
+            "Hoks\\NewsRecommendations\\": "src/"
         }
     },
     "authors": [
@@ -29,10 +29,10 @@
     "extra": {
         "laravel": {
             "providers":[
-                "Hoks\\NewsRecommendation\\NewsRecommendationServiceProvider"
+                "Hoks\\NewsRecommendations\\NewsRecommendationsServiceProvider"
             ],
             "aliases":{
-                "OpenAI" : "Hoks\\NewsRecommendation\\Facades\\OpenAI"
+                "OpenAI" : "Hoks\\NewsRecommendations\\Facades\\OpenAI"
             }
         }
     }

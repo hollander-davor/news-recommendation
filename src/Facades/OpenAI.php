@@ -1,6 +1,6 @@
 <?php
 
-namespace Hoks\NewsRecommendation\Facades;
+namespace Hoks\NewsRecommendations\Facades;
 
 use Illuminate\Support\Facades\Facade;
 

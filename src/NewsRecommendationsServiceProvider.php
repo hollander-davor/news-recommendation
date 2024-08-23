@@ -1,17 +1,17 @@
 <?php
 
-namespace Hoks\NewsRecommendation;
+namespace Hoks\NewsRecommendations;
 
 use Illuminate\Support\ServiceProvider;
-use Hoks\NewsRecommendation\OpenAI;
-use Hoks\NewsRecommendation\Commands\ImportPublishedArticles;
-use Hoks\NewsRecommendation\Commands\ImportPublishedArticlesPeriodicaly;
+use Hoks\NewsRecommendations\OpenAI;
+use Hoks\NewsRecommendations\Commands\ImportPublishedArticles;
+use Hoks\NewsRecommendations\Commands\ImportPublishedArticlesPeriodicaly;
 
-class NewsRecommendationServiceProvider extends ServiceProvider{
+class NewsRecommendationsServiceProvider extends ServiceProvider{
 
     public function boot(){
         $this->publishes([
-            __DIR__.'/config/newsrecommendation.php' => config_path('newsrecommendation.php')
+            __DIR__.'/config/newsrecommendations.php' => config_path('newsrecommendations.php')
         ],'config');
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -25,6 +25,6 @@ class NewsRecommendationServiceProvider extends ServiceProvider{
         $this->app->bind('OpenAI',function(){
             return new OpenAI();
         });
-        $this->mergeConfigFrom(__DIR__.'/config/newsrecommendation.php', 'newsrecommendation');
+        $this->mergeConfigFrom(__DIR__.'/config/newsrecommendations.php', 'newsrecommendations');
     }
 }
