@@ -1,7 +1,7 @@
 {
     "name": "davor/news-recommendation",
     "description": "This package provides AI generated recommendation tags for articles and stores them",
-    "type": "composer-plugin",
+    "type": "library",
     "license": "MIT",
     "autoload": {
         "psr-4": {

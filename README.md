@@ -1,6 +1,6 @@
 # News-recommendation
 Installation:
-1. composer require davor/open-ai
+1. composer require davor/news-recommendation
 2. php artisan vendor:publish --tag=config --provider="Hoks\NewsRecommendation\NewsRecommendationServiceProvider"
 3. Set up config/newsrecommendation.php
 4. Use package :D
