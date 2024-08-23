@@ -21,7 +21,8 @@
     "require": {
         "php": "^7.2|^8.0",
         "guzzlehttp/guzzle": "^6.3|^7.0.0",
-        "intervention/image": "^2.5"
+        "intervention/image": "^2.5",
+        "mongodb/laravel-mongodb": "3.9"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

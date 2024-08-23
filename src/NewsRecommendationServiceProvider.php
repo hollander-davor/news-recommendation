@@ -4,7 +4,8 @@ namespace Hoks\NewsRecommendation;
 
 use Illuminate\Support\ServiceProvider;
 use Hoks\NewsRecommendation\OpenAI;
-
+use Hoks\NewsRecommendation\Commands\ImportPublishedArticles;
+use Hoks\NewsRecommendation\Commands\ImportPublishedArticlesPeriodicaly;
 
 class NewsRecommendationServiceProvider extends ServiceProvider{
 
@@ -12,7 +13,12 @@ class NewsRecommendationServiceProvider extends ServiceProvider{
         $this->publishes([
             __DIR__.'/config/newsrecommendation.php' => config_path('newsrecommendation.php')
         ],'config');
-
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                ImportPublishedArticles::class,
+                ImportPublishedArticlesPeriodicaly::class
+            ]);
+        }
     }
 
     public function register(){
