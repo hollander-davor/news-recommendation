@@ -6,6 +6,7 @@ use Illuminate\Support\ServiceProvider;
 use Hoks\NewsRecommendation\OpenAI;
 use Hoks\NewsRecommendation\Commands\ImportPublishedArticles;
 use Hoks\NewsRecommendation\Commands\ImportPublishedArticlesPeriodicaly;
+use Hoks\NewsRecommendation\Observers\ArticleMongoObserver;
 
 class NewsRecommendationServiceProvider extends ServiceProvider{
 
@@ -18,6 +19,11 @@ class NewsRecommendationServiceProvider extends ServiceProvider{
                 ImportPublishedArticles::class,
                 ImportPublishedArticlesPeriodicaly::class
             ]);
+        }
+        
+        $className = config('newsrecommendation.article_model');
+        if (class_exists($className)) { 
+            $className::observe(ArticleMongoObserver::class); 
         }
     }
 
