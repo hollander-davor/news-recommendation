@@ -211,22 +211,4 @@ class OpenAI{
         return $this->getImage();
     }
 
-    /**
-     * method that creates batch
-     */
-    public function batch(array $batchArray,$maxTokens = 400){
-        $body = [];
-        foreach($batchArray as $key => $prompt){
-            $body[$key]['model'] = $this->getModel();
-            $body[$key]['prompt'] = $prompt;
-            $body[$key]['max_tokens'] = $maxTokens;
-        }
-       
-        $options = ['headers' => $this->getHeaders(),'json' => $body];
-        $response = $this->getClient()->request('POST',$this->getUri(),$options);
-        $this->setResponse($response);
-
-        return $this->getResponse();
-    }
-
 }

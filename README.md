@@ -3,7 +3,9 @@ Installation:
 1. composer require davor/news-recommendation
 2. php artisan vendor:publish --tag=config --provider="Hoks\NewsRecommendation\NewsRecommendationServiceProvider"
 3. Set up config/newsrecommendation.php
-4. Set up connection for mongodb
+4. Set up connection for mongodb in config/database.php
+```php
+
     'mongodb' => [
             'driver'   => 'mongodb',
             'host'     => env('DB_HOST_MONGO', 'mongo'),
@@ -15,7 +17,12 @@ Installation:
                 'database' => env('DB_AUTH_DATABASE', 'admin'), // Authentication database
             ],
         ],
+```
+
 5. Use package :D
+
+
+
 # OpenAI
 This part of package is intended for communication with OpenAI.
 # Code example
@@ -35,4 +42,3 @@ $imageClient = \OpenAI::client('images/generations',60,'dall-e-3');
 $imageUrl = $imageClient->generateImage($imagePrompt)[0];
 
 ```
-Check command GenerateAINews.php for more use cases, as well as OpenAI class for more options on methods
