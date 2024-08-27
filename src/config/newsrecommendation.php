@@ -35,6 +35,13 @@ return [
         'image_m',
         'image_pl'
     ],
+    //required fields for user table
+    'required_fields_for_user' => [
+        'user_id',
+        'tags',
+        'news_recomedation',
+        'latest_update'
+    ],
     //image dimensions
     'image_dimensions' => [
         'image_orig',

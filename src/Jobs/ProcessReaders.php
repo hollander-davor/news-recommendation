@@ -31,24 +31,32 @@ class ProcessReaders implements ShouldQueue
      */
     public function handle()
     {
+    
         //get todays date
         $todaysDate = now()->format('d-m-Y');
 
         $redisKeys = Redis::keys('*');
-        foreach($redisKeys as $redisKey){
+        foreach ($redisKeys as $redisKey) {
+
             //process only redis keys starting with "reader-"
-            if(strstr($redisKey,'reader-')){
+            if (strstr($redisKey, 'reader-')) {
+
                 //get articles ids string and convert it to array
                 $articlesString = Redis::get($redisKey);
-                $articlesIdsArray = explode('|',$articlesString);
+                $articlesIdsArray = explode('|', $articlesString);
                 $articlesIdsArray = array_unique($articlesIdsArray);
+
                 //we will make one big array with following structure
                 // 'tag_name' => nummber of occurences
                 $articleTagsSummedArray = [];
-                foreach($articlesIdsArray as $articleId){
+                foreach ($articlesIdsArray as $articleId) {
                     //get every article tags from mongoDB
-                    $articleTags = [];
-                    $articleTagsSummedArray = array_merge($articleTagsSummedArray,$articleTags);
+                    $articleMongo = ArticleMongo::where('article_id', (int) $articleId)->first();
+                    if(isset($articleMongo) && !empty($articleMongo)) {
+                        $articleTags = [];
+                        $articleTags = $articleMongo->tags;
+                        $articleTagsSummedArray = array_merge($articleTagsSummedArray, $articleTags);
+                    }
                 }
 
                 /**
@@ -63,38 +71,90 @@ class ProcessReaders implements ShouldQueue
                  * and this array we actually put into db
                  */
                 $tagsOcurrences = array_count_values($articleTagsSummedArray);
+                $tagsOcurrencesSort = [];
+                foreach($tagsOcurrences as $key => $value) {
+                    $tagsOcurrencesSort[$key] = $value;
+                }
+                arsort($tagsOcurrencesSort);
 
                 //now we get user data on tags for this day
                 //if data does not exist, we create it (first job call for day)
-                $userTags = [];
+                $explodeRedisKey = explode('-', $redisKey);
+                $userId = $explodeRedisKey[1];
 
-                if(count($userTags) > 0){
-                    foreach($userTags as $key => $userTag){
-                        if(isset($tagsOcurrences[$key])){
-                            $userTags[$key] = $userTag+$tagsOcurrences[$key];
-                            unset($tagsOcurrences[$key]);
+                $existingUser = UserMongo::where('user_id', $userId)->first();
+
+                if(isset($existingUser) && !empty($existingUser)) {
+                    $tags = $existingUser->tags;
+                    if(isset($tags[$todaysDate])) {
+                        $userTags = [];
+                        $userTags = (array) json_decode($existingUser->tags[$todaysDate]);
+
+                        if(count($userTags) > 0) {
+                            foreach ($userTags as $key => $userTag) {
+                                if (isset($tagsOcurrencesSort[$key])) {
+                                    $userTags[$key] = $userTag + $tagsOcurrencesSort[$key];
+                                    unset($tagsOcurrencesSort[$key]);
+                                }
+                            }
+                            $userTags = array_merge($userTags, $tagsOcurrencesSort);
+                            $todaysTags = [$todaysDate => json_encode($userTags)];
+                            $existingUser->tags = array_merge($existingUser->tags,$todaysTags);
+                            $existingUser->save();
+                        }else {
+                            $todaysTags = [$todaysDate => json_encode($tagsOcurrencesSort)];
+                            $existingUser->tags = array_merge($todaysTags, $existingUser->tags);
+                            // $existingUser->tags = [$todaysDate => json_encode($tagsOcurrencesSort)];
+                            $existingUser->save();
                         }
+                    }else {
+                        $todaysTags = [$todaysDate => json_encode($tagsOcurrencesSort)];
+                        $existingUser->tags = array_merge($todaysTags, $existingUser->tags);
+                        // $existingUser->tags = [$todaysDate => json_encode($tagsOcurrencesSort)];
+                        $existingUser->save();
                     }
-                    $userTags = array_merge($userTags,$tagsOcurrences);
+                }else {
+                    $userMongo = new UserMongo();
+                    $userMongo->user_id = $userId;
+                    $userMongo->news_recommendation = null;
+                    $userMongo->tags = [$todaysDate => json_encode($tagsOcurrencesSort)];
+                    $userMongo->latest_update = $todaysDate;
+                    $userMongo->save();
                 }
-                
+
+                // $userTags = [];
+
+                // if (count($userTags) > 0) {
+                //     foreach ($userTags as $key => $userTag) {
+                //         if (isset($tagsOcurrencesSort[$key])) {
+                //             $userTags[$key] = $userTag + $tagsOcurrencesSort[$key];
+                //             unset($tagsOcurrencesSort[$key]);
+                //         }
+                //     }
+                //     $userTags = array_merge($userTags, $tagsOcurrencesSort);
+                // }
+
                 //update user tags for this day
 
                 //set latest update for user now()
 
                 //check if user has tags for day before n days, and delete it
-                $daysKeepData = config('newsrecommendation.days_keep_data');
-                $dayToDelete = now()->subDays($daysKeepData)->format('d-m-Y');
+                if(isset($existingUser)) {
+                    $daysKeepData = config('newsrecommendation.days_keep_data');
+                    $dayToDeleteTag = now()->subDays($daysKeepData)->format('d-m-Y');
 
-                //if user has latest update older than n days, delete user
-                $daysDeleteUser = config('newsrecommendation.days_delete_user');
-                $dayToDelete = now()->subDays($daysDeleteUser)->format('d-m-Y');
+                    $tagsToDelete = $existingUser->tags;
+                    if(isset($tagsToDelete[$dayToDeleteTag])) {
+                        unset($tagsToDelete[$dayToDeleteTag]);
+                        $existingUser->tags = $tagsToDelete;
+                        $existingUser->save();
+                    }
+
+                }
 
                 //delete redis key
-                Redis::command('DEL',[$redisKey]);
-
+                Redis::command('DEL', [$redisKey]);
             }
         }
-        
     }
 }
