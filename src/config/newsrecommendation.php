@@ -61,5 +61,9 @@ return [
     //table name for publish
     'publish_table_name' => 'publish',
    //article model
-   'article_model' => \App\Models\Article::class
+   'article_model' => \App\Models\Article::class,
+   //for how many days we wait for user to visit website again before we delete it
+   'days_delete_user' => 7,
+   //for how many days we keep data
+   'days_keep_data' => 7
 ];

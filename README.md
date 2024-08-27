@@ -18,8 +18,12 @@ Installation:
             ],
         ],
 ```
+5. Shedule job on desired interval 
+    ```php
+        $schedule->job(new ProcessReaders())->everyThirtyMinutes();
+    ```
+6. Use package :D
 
-5. Use package :D
 
 
 
