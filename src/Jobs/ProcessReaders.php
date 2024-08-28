@@ -166,4 +166,104 @@ class ProcessReaders implements ShouldQueue
             }
         }
     }
+
+
+    /**
+     * this method returns list of recommended articles ids for given user tags
+     */
+    protected function recommendedArticles($userTags){
+        //we merge tags for all days in one array
+        $allTags = [];
+        //foreach trough days
+        foreach($userTags as $oneDayTags){
+            //foreach trough tags for one day
+            foreach($oneDayTags as $tag => $value){
+                if(isset($allTags[$tag])){
+                    $allTags[$tag] = $allTags[$tag]+$value;
+                }else{
+                    $allTags[$tag] = $value;
+                }
+            }
+        }
+
+        //sort tags by its occurrence
+        arsort($allTags);
+
+        //based on lowbar, we cut off part of array
+        $arrayLength = config('newsrecommendation.tags_array_length');
+        $allTags = array_slice($allTags,0,$arrayLength);
+        
+        //we sum all tags values (sum of all occurrences)
+        $sumTagsValues = 0;
+        foreach($allTags as $tag => $value){
+            $sumTagsValues = $sumTagsValues+$value;
+        }
+
+        //we calculate tag coefficients
+        $tagsCoefficients = [];
+        $tagsConstant = config('newsrecommendation.tags_constant');
+        foreach($allTags as $tag => $value){
+            //here we get number that is less than 1 so we multiply by 10 and by constant from config
+            $tagsCoefficients[$tag] = (int) round(($value/$sumTagsValues)*10*$tagsConstant);
+        }
+
+        //for each tag, we get tagCoeff number of articles (take just ids)
+        $articles = [];
+        foreach($tagsCoefficients as $tag => $value){
+            $articles[$tag] = ArticleMongo::where();//get $value articles with $tag, should be array of ids
+        }
+        //remove duplicates, keep originals (original is first of its kind)
+        $seen = [];
+        foreach($articles as $tag => $articlesArray){
+            foreach($articlesArray as $key => $id){
+                if(in_array($id,$seen)){
+                    unset($articles[$tag][$key]);
+                }
+                $seen[] = $id;
+            }
+        }
+
+        //we now have some articles for every tag
+        //once again we recalculate how many of each we should take
+        $articlesSum = 0;
+        foreach($articles as $tag => $articlesArray){
+           $articlesSum = $articlesSum + count($articlesArray);
+        }
+        $recommendedArticlesCount = config('newsrecommendation.recommended_articles_count');
+        $articlesCoefficient = [];
+        foreach($articles as $tag => $articlesArray){
+            $articlesCoefficient[$tag] = (int) round((count($articlesArray)/$articlesSum)*$recommendedArticlesCount);
+        }
+
+        // finnaly, we take recommended articles by the articlesCoeff
+        $recommendedArticles = [];
+        $enoughArticles = false;
+        foreach($articlesCoefficient as $tag => $value){
+            for ($x = 0; $x < $value; $x++) {
+                //break when you collect enough articles
+                if(count($recommendedArticles) >= $recommendedArticlesCount){
+                    $enoughArticles = true;
+                    break;
+                }
+                $recommendedArticles[] = $articles[$tag][$x];
+                unset($articles[$tag][$x]);
+            }
+        }
+
+        //if there are not enough articles, add some more
+        if(!$enoughArticles){
+            foreach($articles as $tag => $articlesArray){
+                foreach($articlesArray as $article){
+                    if(count($recommendedArticles) >= $recommendedArticlesCount){
+                    break;
+            }
+                    $recommendedArticles[] = $article;
+                }
+            
+            }
+        }
+
+        return $recommendedArticles;
+        
+    }
 }

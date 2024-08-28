@@ -72,5 +72,9 @@ return [
    //for how many days we wait for user to visit website again before we delete it
    'days_delete_user' => 7,
    //for how many days we keep data
-   'days_keep_data' => 7
+   'days_keep_data' => 7,
+   //number of tags to consider for recommended articles pool
+   'tags_array_length' => 5,
+   //used to get tag coefficient (bigger constant => more articles for tags)
+   'tags_constant' => 3
 ];
