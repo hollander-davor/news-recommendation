@@ -76,5 +76,7 @@ return [
    //number of tags to consider for recommended articles pool
    'tags_array_length' => 5,
    //used to get tag coefficient (bigger constant => more articles for tags)
-   'tags_constant' => 3
+   'tags_constant' => 3,
+   //number of recommended articles
+   'recommended_articles_count' => 10,
 ];

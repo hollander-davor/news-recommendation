@@ -105,42 +105,66 @@ class ProcessReaders implements ShouldQueue
                             $userTags = array_merge($userTags, $tagsOcurrencesSort);
                             $todaysTags = [$todaysDate => json_encode($userTags)];
                             $existingUser->tags = array_merge($existingUser->tags,$todaysTags);
-                            $existingUser->save();
+                            // $existingUser->save();
                         }
                         //if there is no key with today's date among the tags, create it and merge the new tags with the existing ones
                         else {
                             $todaysTags = [$todaysDate => json_encode($tagsOcurrencesSort)];
                             $existingUser->tags = array_merge($existingUser->tags,$todaysTags);
                             // $existingUser->tags = [$todaysDate => json_encode($tagsOcurrencesSort)];
-                            $existingUser->save();
+                            // $existingUser->save();
                         }
                     //if there is no key with today, create it and enter the tags
                     }else {
                         $todaysTags = [$todaysDate => json_encode($tagsOcurrencesSort)];
                         $existingUser->tags = array_merge($existingUser->tags,$todaysTags);
                         // $existingUser->tags = [$todaysDate => json_encode($tagsOcurrencesSort)];
-                        $existingUser->save();
+                        // $existingUser->save();
                     }
 
                     //if there are read news, add new ones, but keep the old ones
-                    if(!empty($existingUser->readed_news)) {
-                        $readedNewsOld = (array) json_decode($existingUser->readed_news);
-                        $readedNewsNew = $articlesIdsArray;
-                        $readedNewsMerge = array_merge($readedNewsOld, $readedNewsNew);
-                        $readedNewsMerge = array_unique($readedNewsMerge);
-                        $readedNewsMerge = array_values($readedNewsMerge);
-                        $existingUser->readed_news = json_encode($readedNewsMerge);
-                        $existingUser->save();
+                    if(!empty($existingUser->read_news)) {
+                        $readNewsOld = (array) json_decode($existingUser->read_news);
+                        $readNewsNew = $articlesIdsArray;
+                        $readNewsMerge = array_merge($readNewsOld, $readNewsNew);
+                        $readNewsMerge = array_unique($readNewsMerge);
+                        $readNewsMerge = array_values($readNewsMerge);
+                        $existingUser->read_news = json_encode($readNewsMerge);
+                        // $existingUser->save();
                     }else {
                         $existingUser->readed_news = json_encode($articlesIdsArray);
-                        $existingUser->save();
+                        // $existingUser->save();
                     }
+
+                    //we take all the tags from the user and format them as a multidimensional array
+                    $userTagsAll = $existingUser->tags;
+                    $formatedTags = [];
+                    foreach($userTagsAll as $key => $value) {
+                        $formatedTags[$key] = (array) json_decode($value);
+                    }
+
+                    //we check whether the user has read the news so that there is no duplication for the recommendation
+                    $readNewsOld = (array) json_decode($existingUser->read_news);
+                    if(empty($readNewsOld)) {
+                        //we call a method that gives us an array of recommended news ids
+                        $recommendedArticles = $this->recommendedArticles($formatedTags, $articlesIdsArray);
+                        $existingUser->news_recommendation = $recommendedArticles;
+                    } else {
+                        $readNewsMerge = array_merge($readNewsOld, $articlesIdsArray);
+                        $readNewsMerge = array_unique($readNewsMerge);
+                        $recommendedArticles = $this->recommendedArticles($formatedTags, $readNewsMerge);
+                        $existingUser->news_recommendation = $recommendedArticles;
+                    }
+
+                    $existingUser->save();
+
                 //if there is no user, create one
                 }else {
                     $userMongo = new UserMongo();
                     $userMongo->user_id = $userId;
-                    $userMongo->readed_news = json_encode($articlesIdsArray);
-                    $userMongo->news_recommendation = null;
+                    $userMongo->read_news = json_encode($articlesIdsArray);
+                    $recommendedArticles = $this->recommendedArticles([$todaysDate => $tagsOcurrencesSort], $articlesIdsArray);
+                    $userMongo->news_recommendation = $recommendedArticles;
                     $userMongo->tags = [$todaysDate => json_encode($tagsOcurrencesSort)];
                     $userMongo->latest_update = $todaysDate;
                     $userMongo->save();
@@ -186,7 +210,7 @@ class ProcessReaders implements ShouldQueue
     /**
      * this method returns list of recommended articles ids for given user tags
      */
-    protected function recommendedArticles($userTags){
+    protected function recommendedArticles($userTags, $read_news = []){
         //we merge tags for all days in one array
         $allTags = [];
         //foreach trough days
@@ -225,7 +249,13 @@ class ProcessReaders implements ShouldQueue
         //for each tag, we get tagCoeff number of articles (take just ids)
         $articles = [];
         foreach($tagsCoefficients as $tag => $value){
-            $articles[$tag] = ArticleMongo::where();//get $value articles with $tag, should be array of ids
+            //get $value articles with $tag, should be array of ids
+            $articlesQuery = ArticleMongo::where('tags', $tag)->whereNotIn('article_id', $read_news)->limit($value)->pluck('article_id');
+            $articlesTemp = [];
+            foreach($articlesQuery as $item){
+                $articlesTemp[] = $item;
+            }
+            $articles[$tag] = $articlesTemp;
         }
         //remove duplicates, keep originals (original is first of its kind)
         $seen = [];
@@ -260,8 +290,10 @@ class ProcessReaders implements ShouldQueue
                     $enoughArticles = true;
                     break;
                 }
-                $recommendedArticles[] = $articles[$tag][$x];
-                unset($articles[$tag][$x]);
+                if(isset($articles[$tag][$x])){
+                    $recommendedArticles[] = $articles[$tag][$x];
+                    unset($articles[$tag][$x]);
+                }
             }
         }
 
