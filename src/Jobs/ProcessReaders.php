@@ -71,25 +71,30 @@ class ProcessReaders implements ShouldQueue
                  * and this array we actually put into db
                  */
                 $tagsOcurrences = array_count_values($articleTagsSummedArray);
+
+                //sorting array by the number of tags in descending order
                 $tagsOcurrencesSort = [];
                 foreach($tagsOcurrences as $key => $value) {
                     $tagsOcurrencesSort[$key] = $value;
                 }
                 arsort($tagsOcurrencesSort);
 
-                //now we get user data on tags for this day
-                //if data does not exist, we create it (first job call for day)
+                //we create a user id
                 $explodeRedisKey = explode('-', $redisKey);
                 $userId = $explodeRedisKey[1];
 
+                //now we get user data on tags for this day
+                //if data does not exist, we create it (first job call for day)
                 $existingUser = UserMongo::where('user_id', $userId)->first();
 
                 if(isset($existingUser) && !empty($existingUser)) {
+                    //we take all the tags that exist
                     $tags = $existingUser->tags;
+                    //if there is a key with today
                     if(isset($tags[$todaysDate])) {
                         $userTags = [];
                         $userTags = (array) json_decode($existingUser->tags[$todaysDate]);
-
+                        //if there are already tags under today's key, add new ones
                         if(count($userTags) > 0) {
                             foreach ($userTags as $key => $userTag) {
                                 if (isset($tagsOcurrencesSort[$key])) {
@@ -101,18 +106,22 @@ class ProcessReaders implements ShouldQueue
                             $todaysTags = [$todaysDate => json_encode($userTags)];
                             $existingUser->tags = array_merge($existingUser->tags,$todaysTags);
                             $existingUser->save();
-                        }else {
+                        }
+                        //if there is no key with today's date among the tags, create it and merge the new tags with the existing ones
+                        else {
                             $todaysTags = [$todaysDate => json_encode($tagsOcurrencesSort)];
-                            $existingUser->tags = array_merge($todaysTags, $existingUser->tags);
+                            $existingUser->tags = array_merge($existingUser->tags,$todaysTags);
                             // $existingUser->tags = [$todaysDate => json_encode($tagsOcurrencesSort)];
                             $existingUser->save();
                         }
+                    //if there is no key with today, create it and enter the tags
                     }else {
                         $todaysTags = [$todaysDate => json_encode($tagsOcurrencesSort)];
-                        $existingUser->tags = array_merge($todaysTags, $existingUser->tags);
+                        $existingUser->tags = array_merge($existingUser->tags,$todaysTags);
                         // $existingUser->tags = [$todaysDate => json_encode($tagsOcurrencesSort)];
                         $existingUser->save();
                     }
+                //if there is no user, create one
                 }else {
                     $userMongo = new UserMongo();
                     $userMongo->user_id = $userId;
