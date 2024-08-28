@@ -9,6 +9,8 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Redis;
+use Hoks\NewsRecommendation\Models\UserMongo;
+use Hoks\NewsRecommendation\Models\ArticleMongo;
 
 class ProcessReaders implements ShouldQueue
 {
@@ -169,22 +171,6 @@ class ProcessReaders implements ShouldQueue
                     $userMongo->latest_update = $todaysDate;
                     $userMongo->save();
                 }
-
-                // $userTags = [];
-
-                // if (count($userTags) > 0) {
-                //     foreach ($userTags as $key => $userTag) {
-                //         if (isset($tagsOcurrencesSort[$key])) {
-                //             $userTags[$key] = $userTag + $tagsOcurrencesSort[$key];
-                //             unset($tagsOcurrencesSort[$key]);
-                //         }
-                //     }
-                //     $userTags = array_merge($userTags, $tagsOcurrencesSort);
-                // }
-
-                //update user tags for this day
-
-                //set latest update for user now()
 
                 //check if user has tags for day before n days, and delete it
                 if(isset($existingUser)) {
