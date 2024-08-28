@@ -82,8 +82,7 @@ class ProcessReaders implements ShouldQueue
                 arsort($tagsOcurrencesSort);
 
                 //we create a user id
-                $explodeRedisKey = explode('-', $redisKey);
-                $userId = $explodeRedisKey[1];
+                $userId = str_replace('reader-', '', $redisKey);
 
                 //now we get user data on tags for this day
                 //if data does not exist, we create it (first job call for day)
@@ -236,7 +235,7 @@ class ProcessReaders implements ShouldQueue
         $articles = [];
         foreach($tagsCoefficients as $tag => $value){
             //get $value articles with $tag, should be array of ids
-            $articlesQuery = ArticleMongo::where('tags', $tag)->whereNotIn('article_id', $read_news)->limit($value)->pluck('article_id');
+            $articlesQuery = ArticleMongo::where('tags', $tag)->whereNotIn('article_id', $read_news)->orderBy('publish_at', 'desc')->limit($value)->pluck('article_id');
             $articlesTemp = [];
             foreach($articlesQuery as $item){
                 $articlesTemp[] = $item;

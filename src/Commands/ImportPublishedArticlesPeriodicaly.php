@@ -25,7 +25,7 @@ class ImportPublishedArticlesPeriodicaly extends Command
     public function handle()
     {
 
-        $new_articles = \DB::table(config('newsrecommendation.articles_table_name'))->where('published', 1)->where('deleted_at', null)->where('publish_at', '>=', Carbon::now()->subMinutes(10))->get();
+        $new_articles = \DB::table(config('newsrecommendation.articles_table_name'))->where('published', 1)->where('deleted_at', null)->where('publish_at', '>=', Carbon::now()->subMinutes(10))->orderBy('publish_at', 'desc')->get();
 
         foreach($new_articles as $article) {
             $existingArticle = ArticleMongo::where('article_id', $article->id)->first();

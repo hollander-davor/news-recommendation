@@ -25,7 +25,7 @@ class ImportPublishedArticles extends Command
     public function handle()
     {
 
-        $all_articles = \DB::table(config('newsrecommendation.articles_table_name'))->where('published', 1)->where('deleted_at', null)->where('publish_at', '>=', Carbon::now()->subDays(config('newsrecommendation.days_ago')))->get();
+        $all_articles = \DB::table(config('newsrecommendation.articles_table_name'))->where('published', 1)->where('deleted_at', null)->where('publish_at', '>=', Carbon::now()->subDays(config('newsrecommendation.days_ago')))->orderBy('publish_at', 'desc')->get();
 
         foreach($all_articles as $article) {
             $dataNormalization = $this->dataNormalization($article);
