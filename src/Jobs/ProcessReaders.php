@@ -121,10 +121,25 @@ class ProcessReaders implements ShouldQueue
                         // $existingUser->tags = [$todaysDate => json_encode($tagsOcurrencesSort)];
                         $existingUser->save();
                     }
+
+                    //if there are read news, add new ones, but keep the old ones
+                    if(!empty($existingUser->readed_news)) {
+                        $readedNewsOld = (array) json_decode($existingUser->readed_news);
+                        $readedNewsNew = $articlesIdsArray;
+                        $readedNewsMerge = array_merge($readedNewsOld, $readedNewsNew);
+                        $readedNewsMerge = array_unique($readedNewsMerge);
+                        $readedNewsMerge = array_values($readedNewsMerge);
+                        $existingUser->readed_news = json_encode($readedNewsMerge);
+                        $existingUser->save();
+                    }else {
+                        $existingUser->readed_news = json_encode($articlesIdsArray);
+                        $existingUser->save();
+                    }
                 //if there is no user, create one
                 }else {
                     $userMongo = new UserMongo();
                     $userMongo->user_id = $userId;
+                    $userMongo->readed_news = json_encode($articlesIdsArray);
                     $userMongo->news_recommendation = null;
                     $userMongo->tags = [$todaysDate => json_encode($tagsOcurrencesSort)];
                     $userMongo->latest_update = $todaysDate;
