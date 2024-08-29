@@ -3,6 +3,8 @@
 return [
     //api key for openai
     'openai-api-key' => '',
+    //chat gpt model to use (Note: quality of data may depend on model used)
+    'ai_model' => 'gpt-4-turbo',
     //required fields for saveing articles
     'required_fields' => [
         'article_id',
