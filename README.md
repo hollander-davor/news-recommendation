@@ -126,6 +126,8 @@ public function readerData(){
                 _token: "{{ csrf_token() }}",
                 article_id: {{$article['id']}},
                 readerID : readerID,
+                publish_at : "{{$article['publish_at']}}"
+
             }
         });
 
