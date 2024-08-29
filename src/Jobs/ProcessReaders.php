@@ -196,6 +196,10 @@ class ProcessReaders implements ShouldQueue
      * this method returns list of recommended articles ids for given user tags
      */
     protected function recommendedArticles($userTags, $read_news = []){
+        //we set values to integers
+        if(!empty($read_news)) {
+            $read_news = array_map('intval', $read_news);
+        }
         //we merge tags for all days in one array
         $allTags = [];
         //foreach trough days
@@ -251,6 +255,8 @@ class ProcessReaders implements ShouldQueue
                 }
                 $seen[] = $id;
             }
+            $articles[$tag] = array_values($articles[$tag]);
+
         }
 
         //we now have some articles for every tag
