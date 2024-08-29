@@ -67,6 +67,8 @@ public function readerData(){
     $data = request()->validate([
         'article_id' => ['required','numeric','exists:articles,id'],
         'readerID' => ['required','string'],
+        'publish_at' => ['required','date']
+
     ]);
     $publishDate = Carbon::parse($data['publish_at']);
     // only take into account articles that are not older than 10 days
