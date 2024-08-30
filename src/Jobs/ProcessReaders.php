@@ -267,10 +267,11 @@ class ProcessReaders implements ShouldQueue
         }
         $recommendedArticlesCount = config('newsrecommendation.recommended_articles_count');
         $articlesCoefficient = [];
-        foreach($articles as $tag => $articlesArray){
-            $articlesCoefficient[$tag] = (int) round((count($articlesArray)/$articlesSum)*$recommendedArticlesCount);
+        if($articlesSum != 0) {
+            foreach($articles as $tag => $articlesArray){
+                $articlesCoefficient[$tag] = (int) round((count($articlesArray)/$articlesSum)*$recommendedArticlesCount);
+            }
         }
-
         // finnaly, we take recommended articles by the articlesCoeff
         $recommendedArticles = [];
         $enoughArticles = false;
