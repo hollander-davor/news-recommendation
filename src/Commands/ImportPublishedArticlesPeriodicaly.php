@@ -104,7 +104,16 @@ class ImportPublishedArticlesPeriodicaly extends Command
             }elseif($column == 'article_url') {
                 $finalData[$column] = $articleUrl;
             }else {
-                $finalData[$column] = $data->$column;
+                if($column == 'site_id'){
+                    if(!config('newsrecommendation.site_id')){
+                        $finalData[$column] = $data->$column;
+                    }else{
+                          $finalData[$column] = config('newsrecommendation.site_id');
+                    }
+                }else{
+                    $finalData[$column] = $data->$column;
+
+                }
             }
 
         }
