@@ -14,14 +14,14 @@ class ProcessReaders extends Command
      *
      * @var string
      */
-    protected $signature = 'articles:import-in-mongodb';
+    protected $signature = 'process:readers';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Import all published articles in mongodb databse';
+    protected $description = 'Proces redis readers';
 
     public function handle()
     {
