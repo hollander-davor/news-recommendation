@@ -81,4 +81,10 @@ return [
    'tags_constant' => 3,
    //number of recommended articles
    'recommended_articles_count' => 10,
+   //is publish table beeing used
+   'use_publish' => false,
+   //site_id for articles if false, then take from table, else enter site_id
+   'site_id' => false
+
+   
 ];

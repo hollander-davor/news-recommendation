@@ -19,8 +19,13 @@ class ArticleMongoObserver
         $original = $article->getOriginal();
 
         //article site
-        $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', $original['site_id'])->first();
-        $domain = $website->url;
+        if(!config('newsrecommendation.site_id')){
+            $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', $original['site_id'])->first();
+            $domain = $website->url;
+        }else{
+            $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', config('newsrecommendation.site_id'))->first();
+            $domain = $website->url;
+        }
         //article category
         $category = \DB::table(config('newsrecommendation.categories_table_name'))->where('id', $original['category_id'])->first();
         $categoryName = $category->name;
