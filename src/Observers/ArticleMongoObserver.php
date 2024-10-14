@@ -98,7 +98,11 @@ class ArticleMongoObserver
             }
         }
         catch(Exception $e){
-            Log::info('OBSERVER_ERROR',$original->toArray());
+            if(is_array($original)){
+                Log::info('OBSERVER_ERROR',$original);
+            }else{
+                Log::info('OBSERVER_ERROR',$original->toArray());
+            }
         }
         
     }
