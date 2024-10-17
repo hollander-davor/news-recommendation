@@ -148,7 +148,7 @@ class ProcessReaders extends Command
                         $recommendedArticles = $this->recommendedArticles($formatedTags, $readNewsMerge);
                         $existingUser->news_recommendation = $recommendedArticles;
                     }
-
+                    $existingUser->latest_update = $todaysDate;
                     $existingUser->save();
 
                 //if there is no user, create one
