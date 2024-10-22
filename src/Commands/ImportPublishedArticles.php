@@ -29,9 +29,10 @@ class ImportPublishedArticles extends Command
 
         foreach($all_articles as $article) {
             $dataNormalization = $this->dataNormalization($article);
-            $entity = new ArticleMongo();
-
-            $entity->create($dataNormalization);
+            if($dataNormalization){
+                $entity = new ArticleMongo();
+                $entity->create($dataNormalization);
+            }
         }
 
     }
@@ -41,8 +42,19 @@ class ImportPublishedArticles extends Command
         $finalData = [];
 
         if(!config('newsrecommendation.site_id')){
-            $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', $data->site_id)->first();
-            $domain = $website->url;
+            if(config('newsrecommendation.site_id_from_public')){
+                $publishSite = \DB::table(config('newsrecommendation.publish_table_name'))->where('id', $data->id)->first();
+                if($publishSite){
+                    $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', $publishSite->site_id)->first();
+                    $domain = $website->url;
+                }else{
+                    return false;
+                }
+                
+            }else{
+                $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', $data->site_id)->first();
+                $domain = $website->url;
+            }
         }else{
             $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', config('newsrecommendation.site_id'))->first();
             $domain = $website->url;

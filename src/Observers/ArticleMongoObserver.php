@@ -23,8 +23,19 @@ class ArticleMongoObserver
 
             //article site
             if(!config('newsrecommendation.site_id')){
-                $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', $original['site_id'])->first();
-                $domain = $website->url;
+                if(config('newsrecommendation.site_id_from_public')){
+                    $publishSite = \DB::table(config('newsrecommendation.publish_table_name'))->where('id', $data->id)->first();
+                    if($publishSite){
+                        $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', $publishSite->site_id)->first();
+                        $domain = $website->url;
+                    }else{
+                        return false;
+                    }
+                    
+                }else{
+                    $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', $data->site_id)->first();
+                    $domain = $website->url;
+                }
             }else{
                 $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', config('newsrecommendation.site_id'))->first();
                 $domain = $website->url;

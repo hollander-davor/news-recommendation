@@ -83,8 +83,11 @@ return [
    'recommended_articles_count' => 10,
    //is publish table beeing used
    'use_publish' => false,
-   //site_id for articles if false, then take from table, else enter site_id
-   'site_id' => false
+   //site_id for articles: if false, then take first from table (but if site_id_from_public is true, take the one from publish table), else enter site_id
+   'site_id' => false,
+   //do we read site_id from public table
+   'site_id_from_public' => false
+
 
    
 ];
