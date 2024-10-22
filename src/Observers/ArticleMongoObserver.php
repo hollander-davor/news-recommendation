@@ -24,28 +24,40 @@ class ArticleMongoObserver
             //article site
             if(!config('newsrecommendation.site_id')){
                 if(config('newsrecommendation.site_id_from_public')){
-                    $publishSite = \DB::table(config('newsrecommendation.publish_table_name'))->where('id', $data->id)->first();
+                    $publishSite = \DB::table(config('newsrecommendation.publish_table_name'))->where('article_id', $original['id'])->first();
                     if($publishSite){
                         $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', $publishSite->site_id)->first();
                         $domain = $website->url;
                     }else{
                         return false;
                     }
-                    
                 }else{
-                    $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', $data->site_id)->first();
+                    $website = \DB::table(config('newsrecommendation.websites_table_name'))->first();
                     $domain = $website->url;
                 }
             }else{
                 $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', config('newsrecommendation.site_id'))->first();
                 $domain = $website->url;
             }
-            //article category
-            $category = \DB::table(config('newsrecommendation.categories_table_name'))->where('id', $original['category_id'])->first();
-            $categoryName = $category->name;
-            //article subcategory
-            $subcategory = \DB::table(config('newsrecommendation.categories_table_name'))->where('id', $original['subcategory_id'])->first();
-            $subcategoryName = $subcategory->name;
+            if(config('newsrecommendation.use_publish')) {
+                $publish = \DB::table(config('newsrecommendation.publish_table_name'))->where('article_id', $original['id'])->first();
+                if(!$publish){
+                    return;
+                }
+                //article category
+                $category = \DB::table(config('newsrecommendation.categories_table_name'))->where('id', $publish->category_id)->first();
+                $categoryName = $category->name;
+                //article subcategory
+                $subcategory = \DB::table(config('newsrecommendation.categories_table_name'))->where('id', $publish->subcategory_id)->first();
+                $subcategoryName = $subcategory->name;
+            }else{
+                //article category
+                $category = \DB::table(config('newsrecommendation.categories_table_name'))->where('id', $original['category_id'])->first();
+                $categoryName = $category->name;
+                //article subcategory
+                $subcategory = \DB::table(config('newsrecommendation.categories_table_name'))->where('id', $original['subcategory_id'])->first();
+                $subcategoryName = $subcategory->name;
+            }
 
             //retrieving changed values
             $changedAttributes = $article->getDirty();

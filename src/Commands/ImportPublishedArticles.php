@@ -43,7 +43,7 @@ class ImportPublishedArticles extends Command
 
         if(!config('newsrecommendation.site_id')){
             if(config('newsrecommendation.site_id_from_public')){
-                $publishSite = \DB::table(config('newsrecommendation.publish_table_name'))->where('id', $data->id)->first();
+                $publishSite = \DB::table(config('newsrecommendation.publish_table_name'))->where('article_id', $data->id)->first();
                 if($publishSite){
                     $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', $publishSite->site_id)->first();
                     $domain = $website->url;
@@ -52,7 +52,7 @@ class ImportPublishedArticles extends Command
                 }
                 
             }else{
-                $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', $data->site_id)->first();
+                $website = \DB::table(config('newsrecommendation.websites_table_name'))->first();
                 $domain = $website->url;
             }
         }else{
