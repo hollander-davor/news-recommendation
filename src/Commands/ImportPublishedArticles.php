@@ -117,10 +117,20 @@ class ImportPublishedArticles extends Command
                 $finalData[$column] = $encodedUrl;
             }else {
                 if($column == 'site_id'){
-                    if(!config('newsrecommendation.site_id')){
-                        $finalData[$column] = $data->$column;
+                    if(config('newsrecommendation.site_id')){
+                        $finalData[$column] = config('newsrecommendation.site_id');
                     }else{
-                          $finalData[$column] = config('newsrecommendation.site_id');
+                        if(config('newsrecommendation.site_id_from_public')){
+                            $publishSite = \DB::table(config('newsrecommendation.publish_table_name'))->where('article_id', $data->id)->first();
+                            if($publishSite){
+                                $website = \DB::table(config('newsrecommendation.websites_table_name'))->where('id', $publishSite->site_id)->first();
+                                $finalData[$column] = $website->id;
+                            }
+                        }else{
+                            $website = \DB::table(config('newsrecommendation.websites_table_name'))->first();
+                            $finalData[$column] = $website->id;
+
+                        }
                     }
                 }else{
                     $finalData[$column] = $data->$column;
