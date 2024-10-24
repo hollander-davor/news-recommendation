@@ -67,7 +67,7 @@ class ImportPublishedArticles extends Command
                 $categoryName = $category->name;
                 $categoryUrl = $domain . '/' . \Str::slug($categoryName);
 
-                $subcategory = \DB::table(config('newsrecommendation.categories_table_name'))->where('subcategory_id', $article->subcategory_id)->first();
+                $subcategory = \DB::table(config('newsrecommendation.categories_table_name'))->where('id', $article->subcategory_id)->first();
                 $subcategoryName = $subcategory->name;
                 $subcategoryUrl = $domain . '/' . \Str::slug($categoryName) . '/' . \Str::slug($subcategoryName);
             }
