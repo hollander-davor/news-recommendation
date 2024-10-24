@@ -90,7 +90,11 @@ class ImportPublishedArticlesPeriodicaly extends Command
             }
         }
         $articleUrl = $domain . '/' . \Str::slug($categoryName) . '/' . \Str::slug($subcategoryName) . '/' . $data->id . '/' . \Str::slug(!empty($data->og_title) ? $data->og_title : $data->heading) .'/vest';
-
+        //get salt from config
+        $salt = config('newsrecommendation.url_salt');
+        $urlWithSalt = $salt . '|' . $articleUrl;
+        //encod URL useing hash_hmac
+        $encodedUrl = base64_encode($urlWithSalt);
 
         foreach(config('newsrecommendation.required_fields') as $column) {
 
@@ -115,7 +119,7 @@ class ImportPublishedArticlesPeriodicaly extends Command
             }elseif($column == 'subcategory_url') {
                 $finalData[$column] = $subcategoryUrl;
             }elseif($column == 'article_url') {
-                $finalData[$column] = $articleUrl;
+                $finalData[$column] = $encodedUrl;
             }else {
                 if($column == 'site_id'){
                     if(!config('newsrecommendation.site_id')){

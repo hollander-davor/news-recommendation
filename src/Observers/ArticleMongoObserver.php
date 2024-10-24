@@ -95,6 +95,11 @@ class ArticleMongoObserver
                     $answerArray = explode('|',strtolower($answerString));
 
                     $articleUrl = $domain . '/' . \Str::slug($categoryName) . '/' . \Str::slug($subcategoryName) . '/' . $original['id'] . '/' . \Str::slug(!empty($original['og_title']) ? $original['og_title'] : $heading) .'/vest';
+                    //get salt from config
+                    $salt = config('newsrecommendation.url_salt');
+                    $urlWithSalt = $salt . '|' . $articleUrl;
+                    //encod URL useing hash_hmac
+                    $encodedUrl = base64_encode($urlWithSalt);
 
                     $articleMongo = ArticleMongo::where('article_id', $original['id'])->first();
                     if(isset($articleMongo) && !empty($articleMongo)) {
@@ -113,7 +118,7 @@ class ArticleMongoObserver
 
                         $articleMongo->heading = $heading;
                         $articleMongo->lead = $lead;
-                        $articleMongo->article_url = $articleUrl;
+                        $articleMongo->article_url = $encodedUrl;
                         $articleMongo->tags = $answerArray;
                         $articleMongo->save();
                     }

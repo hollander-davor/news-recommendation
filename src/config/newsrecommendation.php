@@ -86,8 +86,7 @@ return [
    //site_id for articles: if false, then take first from table (but if site_id_from_public is true, take the one from publish table), else enter site_id
    'site_id' => false,
    //do we read site_id from public table (only works if site_id is false)
-   'site_id_from_public' => false
-
-
-   
+   'site_id_from_public' => false,
+    //encode article url with salt
+    'url_salt' => 'news@recommendations',
 ];
