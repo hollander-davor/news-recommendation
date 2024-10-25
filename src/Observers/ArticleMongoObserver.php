@@ -93,6 +93,10 @@ class ArticleMongoObserver
                     $client = \OpenAI::client('chat/completions',30,$AiModel);
                     $answerString = $client->ask('Analiziraj tekst, uvod, naslov i kategoriju novinskog artikla i predloži 10 ključnih reči koje se odnose na glavne teme i entitete. Pokaži ih samo kao string, odvojene sa "|", bez navodnika, bez dodatnog objašnjenja. Ovo je naslov: '.$heading.'.Ovo je uvod: '.$lead.'. Ovo je kategorija: ' . $categoryName . '. Ovo je tekst: '.$text)['content'];
                     $answerArray = explode('|',strtolower($answerString));
+                    $answerArrayFinal = [];
+                    foreach($answerArray as $key => $value){
+                        $answerArrayFinal[$key] = str_replace('"','',trim($value));
+                    }
 
                     $articleUrl = $domain . '/' . \Str::slug($categoryName) . '/' . \Str::slug($subcategoryName) . '/' . $original['id'] . '/' . \Str::slug(!empty($original['og_title']) ? $original['og_title'] : $heading) .'/vest';
                     //get salt from config
@@ -119,7 +123,7 @@ class ArticleMongoObserver
                         $articleMongo->heading = $heading;
                         $articleMongo->lead = $lead;
                         $articleMongo->article_url = $encodedUrl;
-                        $articleMongo->tags = $answerArray;
+                        $articleMongo->tags = $answerArrayFinal;
                         $articleMongo->save();
                     }
                 }

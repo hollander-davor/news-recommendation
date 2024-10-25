@@ -102,7 +102,11 @@ class ImportPublishedArticles extends Command
                 $client = \OpenAI::client('chat/completions',30,$AiModel);
                 $answerString = $client->ask('Analiziraj tekst, uvod, naslov i kategoriju novinskog artikla i predloži 10 ključnih reči koje se odnose na glavne teme i entitete. Pokaži ih samo kao string, odvojene sa "|" , bez navodnika, bez dodatnog objašnjenja. Ovo je naslov: '.$heading.'.Ovo je uvod: '.$lead.'. Ovo je kategorija: ' . $categoryName . '. Ovo je tekst: '.$text)['content'];
                 $answerArray = explode('|',strtolower($answerString));
-                $finalData[$column] = $answerArray;
+                $answerArrayFinal = [];
+                foreach($answerArray as $key => $value){
+                    $answerArrayFinal[$key] = str_replace('"','',trim($value));
+                }
+                $finalData[$column] = $answerArrayFinal;
             }elseif($column == 'article_id') {
                 $finalData[$column] = $data->id;
             }elseif($column == 'category') {
