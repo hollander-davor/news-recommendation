@@ -42,7 +42,8 @@ return [
         'user_id',
         'tags',
         'news_recomedation',
-        'latest_update'
+        'latest_update',
+        'firebase_uid'//used only when we use firebase for signed up users
     ],
     //image dimensions
     'image_dimensions' => [

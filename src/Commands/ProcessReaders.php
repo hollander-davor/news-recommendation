@@ -74,7 +74,28 @@ class ProcessReaders extends Command
                 arsort($tagsOcurrencesSort);
 
                 //we create a user id
-                $userId = str_replace('reader-', '', $redisKey);
+                //there are two variants of redisKey, with and without firebase key
+                if(strstr($redisKey,'###')){
+                    $longRedisKeyArray = explode('###',$redisKey);
+                    $userId = str_replace('reader-','',$longRedisKeyArray[0]);
+                    $firebaseUid = $longRedisKeyArray[1];
+                }else{
+                    $userId = str_replace('reader-', '', $redisKey);
+                    $firebaseUid = false;
+
+                }
+
+                if($firebaseUid){
+                    //try to find if there is user with firebase_uid
+                    $existingUser = UserMongo::where('firebase_uid', $firebaseUid)->first();
+                    //if there is no user with firebase_uid and firebase_uid is in redis key, it could
+                    //be the first login on anonymus user, so we try to find that user
+                    if(!isset($existingUser) && empty($existingUser)){
+                        $existingUser = UserMongo::where('user_id', $userId)->first();
+                    }
+                }else{
+                    $existingUser = UserMongo::where('user_id', $userId)->first();
+                }
 
                 //now we get user data on tags for this day
                 //if data does not exist, we create it (first job call for day)
@@ -149,6 +170,12 @@ class ProcessReaders extends Command
                         $existingUser->news_recommendation = $recommendedArticles;
                     }
                     $existingUser->latest_update = $todaysDate;
+                    //check if userId is changed (user used another device or deleted local storage)
+                    if($firebaseUid){
+                        if($userId != $existingUser->user_id){
+                            $existingUser->user_id = $userId;
+                        }
+                    }
                     $existingUser->save();
 
                 //if there is no user, create one
@@ -160,6 +187,9 @@ class ProcessReaders extends Command
                     $userMongo->news_recommendation = $recommendedArticles;
                     $userMongo->tags = [$todaysDate => json_encode($tagsOcurrencesSort)];
                     $userMongo->latest_update = $todaysDate;
+                    if($firebaseUid){
+                        $userMongo->firebase_uid = $firebaseUid;
+                    }
                     $userMongo->save();
                 }
 

@@ -7,6 +7,7 @@ use Hoks\NewsRecommendation\OpenAI;
 use Hoks\NewsRecommendation\Commands\ImportPublishedArticles;
 use Hoks\NewsRecommendation\Commands\ImportPublishedArticlesPeriodicaly;
 use Hoks\NewsRecommendation\Observers\ArticleMongoObserver;
+use Hoks\NewsRecommendation\Commands\ProcessReaders;
 
 class NewsRecommendationServiceProvider extends ServiceProvider{
 
@@ -17,7 +18,8 @@ class NewsRecommendationServiceProvider extends ServiceProvider{
         if ($this->app->runningInConsole()) {
             $this->commands([
                 ImportPublishedArticles::class,
-                ImportPublishedArticlesPeriodicaly::class
+                ImportPublishedArticlesPeriodicaly::class,
+                ProcessReaders::class
             ]);
         }
         
