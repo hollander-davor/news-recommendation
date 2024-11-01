@@ -184,12 +184,12 @@ class ProcessReaders extends Command
                     if(empty($readNewsOld)) {
                         //we call a method that gives us an array of recommended news ids
                         $recommendedArticles = $this->recommendedArticles($formatedTags, $articlesIdsArray);
-                        $existingUser->news_recommendation = $recommendedArticles;
+                        $existingUser->news_recommendation = json_encode($recommendedArticles);
                     } else {
                         $readNewsMerge = array_merge($readNewsOld, $articlesIdsArray);
                         $readNewsMerge = array_unique($readNewsMerge);
                         $recommendedArticles = $this->recommendedArticles($formatedTags, $readNewsMerge);
-                        $existingUser->news_recommendation = $recommendedArticles;
+                        $existingUser->news_recommendation = json_encode($recommendedArticles);
                     }
                     $existingUser->latest_update = $todaysDate;
                     //check if userId is changed (user used another device or deleted local storage)
