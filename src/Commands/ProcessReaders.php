@@ -31,7 +31,7 @@ class ProcessReaders extends Command
 
         $redisKeys = Redis::keys('*');
         foreach ($redisKeys as $redisKey) {
-
+            
             //process only redis keys starting with "reader-"
             if (strstr($redisKey, 'reader-')) {
 
@@ -49,10 +49,16 @@ class ProcessReaders extends Command
                     if(isset($articleMongo) && !empty($articleMongo)) {
                         $articleTags = [];
                         $articleTags = $articleMongo->tags;
-                        $articleTagsSummedArray = array_merge($articleTagsSummedArray, $articleTags);
+                        $siteId = $articleMongo->site_id;
+                        $siteKey = 'site_'.$siteId;
+                        if(isset($articleTagsSummedArray[$siteKey])){
+                            $articleTagsSummedArray[$siteKey] = array_merge($articleTagsSummedArray[$siteKey], $articleTags);
+                        }else{
+                            $articleTagsSummedArray[$siteKey] = $articleTags;
+                        }
                     }
                 }
-
+                
                 /**
                  * we now count duplicates to get something like this
                  * [
@@ -64,15 +70,21 @@ class ProcessReaders extends Command
                  * ]
                  * and this array we actually put into db
                  */
-                $tagsOcurrences = array_count_values($articleTagsSummedArray);
-
-                //sorting array by the number of tags in descending order
-                $tagsOcurrencesSort = [];
-                foreach($tagsOcurrences as $key => $value) {
-                    $tagsOcurrencesSort[$key] = $value;
+                $tagOccurencesArray = [];
+                foreach($articleTagsSummedArray as $key => $articleTagsSummedArrayOneSite){
+                    $tagOccurencesArray[$key] = array_count_values($articleTagsSummedArrayOneSite);
                 }
-                arsort($tagsOcurrencesSort);
-
+                //sorting array by the number of tags in descending order
+                $tagsOcurrencesSortArray = [];
+                foreach($tagOccurencesArray as $siteKey => $tagsOcurrences){
+                    $tagsOcurrencesSort = [];
+                    foreach($tagsOcurrences as $key => $value) {
+                        $tagsOcurrencesSort[$key] = $value;
+                    }
+                    arsort($tagsOcurrencesSort);
+                    $tagsOcurrencesSortArray[$siteKey] = $tagsOcurrencesSort;
+                }
+               
                 //we create a user id
                 //there are two variants of redisKey, with and without firebase key
                 if(strstr($redisKey,'###')){
@@ -106,34 +118,42 @@ class ProcessReaders extends Command
                     $tags = $existingUser->tags;
                     //if there is a key with today
                     if(isset($tags[$todaysDate])) {
-                        $userTags = [];
-                        $userTags = (array) json_decode($existingUser->tags[$todaysDate]);
-                        //if there are already tags under today's key, add new ones
-                        if(count($userTags) > 0) {
-                            foreach ($userTags as $key => $userTag) {
-                                if (isset($tagsOcurrencesSort[$key])) {
-                                    $userTags[$key] = $userTag + $tagsOcurrencesSort[$key];
-                                    unset($tagsOcurrencesSort[$key]);
+                        $userTagsArray = [];
+                        $userTagsArray = (array) json_decode($existingUser->tags[$todaysDate]);
+                        //todaysTags should contain all tags for todaysDate (both new and old)
+                        $todaysTags = [];
+                        foreach($userTagsArray as $siteKey => $userTagsOnSite){
+                            //check if there are new tags for this site id
+                            if(isset($tagsOcurrencesSortArray[$siteKey])){
+                                $userTagsOnSite = (array) $userTagsOnSite;
+                                //if there are already tags under today's key, add new ones
+                                if(count($userTagsOnSite) > 0) {
+                                    //if new tag already exists, increase its occurence number in original array
+                                    foreach ($userTagsOnSite as $key => $userTag) {
+                                        if (isset($tagsOcurrencesSortArray[$siteKey][$key])) {
+                                            $userTagsOnSite[$key] = $userTag + $tagsOcurrencesSortArray[$siteKey][$key];
+                                            unset($tagsOcurrencesSortArray[$siteKey][$key]);
+                                        }
+                                    }
+                                    //for this siteKey, merge new and old tags
+                                    $userTagsArray[$siteKey] = array_merge($userTagsOnSite, $tagsOcurrencesSortArray[$siteKey]);
+                                    $todaysTags[$siteKey] = $userTagsArray[$siteKey];
                                 }
+                                //if there is no key with today's date among the tags, create it and merge the new tags with the existing ones
+                                else {
+                                    $todaysTags[$siteKey] = $tagsOcurrencesSortArray[$siteKey];
+                                }
+                            }else{
+                                //if there are no new tags for some site, we just save old values for that site
+                                $todaysTags[$siteKey] = $userTagsArray[$siteKey];
                             }
-                            $userTags = array_merge($userTags, $tagsOcurrencesSort);
-                            $todaysTags = [$todaysDate => json_encode($userTags)];
-                            $existingUser->tags = array_merge($existingUser->tags,$todaysTags);
-                            // $existingUser->save();
                         }
-                        //if there is no key with today's date among the tags, create it and merge the new tags with the existing ones
-                        else {
-                            $todaysTags = [$todaysDate => json_encode($tagsOcurrencesSort)];
-                            $existingUser->tags = array_merge($existingUser->tags,$todaysTags);
-                            // $existingUser->tags = [$todaysDate => json_encode($tagsOcurrencesSort)];
-                            // $existingUser->save();
-                        }
+                        $todaysTags =  [$todaysDate => json_encode($todaysTags)];
+                        $existingUser->tags = array_merge($existingUser->tags,$todaysTags);
                     //if there is no key with today, create it and enter the tags
                     }else {
-                        $todaysTags = [$todaysDate => json_encode($tagsOcurrencesSort)];
+                        $todaysTags = [$todaysDate => json_encode($tagsOcurrencesSortArray)];
                         $existingUser->tags = array_merge($existingUser->tags,$todaysTags);
-                        // $existingUser->tags = [$todaysDate => json_encode($tagsOcurrencesSort)];
-                        // $existingUser->save();
                     }
 
                     //if there are read news, add new ones, but keep the old ones
@@ -144,19 +164,21 @@ class ProcessReaders extends Command
                         $readNewsMerge = array_unique($readNewsMerge);
                         $readNewsMerge = array_values($readNewsMerge);
                         $existingUser->read_news = json_encode($readNewsMerge);
-                        // $existingUser->save();
                     }else {
                         $existingUser->readed_news = json_encode($articlesIdsArray);
-                        // $existingUser->save();
                     }
 
                     //we take all the tags from the user and format them as a multidimensional array
                     $userTagsAll = $existingUser->tags;
+                    
                     $formatedTags = [];
-                    foreach($userTagsAll as $key => $value) {
-                        $formatedTags[$key] = (array) json_decode($value);
+                    foreach($userTagsAll as $date => $sitesTags) {
+                        $sitesTags = (array) json_decode($sitesTags);
+                        foreach($sitesTags as $siteKey => $tags){
+                            $tags = (array) $tags;
+                            $formatedTags[$date][$siteKey] = $tags;
+                        }
                     }
-
                     //we check whether the user has read the news so that there is no duplication for the recommendation
                     $readNewsOld = (array) json_decode($existingUser->read_news);
                     if(empty($readNewsOld)) {
@@ -183,9 +205,9 @@ class ProcessReaders extends Command
                     $userMongo = new UserMongo();
                     $userMongo->user_id = $userId;
                     $userMongo->read_news = json_encode($articlesIdsArray);
-                    $recommendedArticles = $this->recommendedArticles([$todaysDate => $tagsOcurrencesSort], $articlesIdsArray);
-                    $userMongo->news_recommendation = $recommendedArticles;
-                    $userMongo->tags = [$todaysDate => json_encode($tagsOcurrencesSort)];
+                    $recommendedArticles = $this->recommendedArticles([$todaysDate => $tagsOcurrencesSortArray], $articlesIdsArray);
+                    $userMongo->news_recommendation = json_encode($recommendedArticles);
+                    $userMongo->tags = [$todaysDate => json_encode($tagsOcurrencesSortArray)];
                     $userMongo->latest_update = $todaysDate;
                     if($firebaseUid){
                         $userMongo->firebase_uid = $firebaseUid;
@@ -217,114 +239,124 @@ class ProcessReaders extends Command
     /**
      * this method returns list of recommended articles ids for given user tags
      */
-    protected function recommendedArticles($userTags, $read_news = []){
+    protected function recommendedArticles($userTagsArray, $read_news = []){
         //we set values to integers
         if(!empty($read_news)) {
             $read_news = array_map('intval', $read_news);
         }
-        //we merge tags for all days in one array
-        $allTags = [];
+        //we merge tags for all days for one site in one element of an array
+        $allTagsArray = [];
         //foreach trough days
-        foreach($userTags as $oneDayTags){
-            //foreach trough tags for one day
-            foreach($oneDayTags as $tag => $value){
-                if(isset($allTags[$tag])){
-                    $allTags[$tag] = $allTags[$tag]+$value;
-                }else{
-                    $allTags[$tag] = $value;
+        foreach($userTagsArray as $oneDayTagsArray){
+            //foreach trough sites
+            foreach($oneDayTagsArray as $siteKey => $oneDayOneSiteTags){
+                //foreach trough tags for one day for one site
+                $tempArray = [];
+                foreach($oneDayOneSiteTags as $tag => $value){
+                    if(isset($allTagsArray[$siteKey][$tag])){
+                        $tempArray[$tag] = $allTagsArray[$siteKey][$tag]+$value;
+                    }else{
+                        $tempArray[$tag] = $value;
+                    }
                 }
+                //sort tags by its occurrence
+                arsort($tempArray);
+                $allTagsArray[$siteKey] = $tempArray;
             }
+            
         }
-
-        //sort tags by its occurrence
-        arsort($allTags);
-
         //based on lowbar, we cut off part of array
         $arrayLength = config('newsrecommendation.tags_array_length');
-        $allTags = array_slice($allTags,0,$arrayLength);
-        
-        //we sum all tags values (sum of all occurrences)
-        $sumTagsValues = 0;
-        foreach($allTags as $tag => $value){
-            $sumTagsValues = $sumTagsValues+$value;
-        }
-
-        //we calculate tag coefficients
-        $tagsCoefficients = [];
         $tagsConstant = config('newsrecommendation.tags_constant');
-        foreach($allTags as $tag => $value){
-            //here we get number that is less than 1 so we multiply by 10 and by constant from config
-            $tagsCoefficients[$tag] = (int) round(($value/$sumTagsValues)*10*$tagsConstant);
-        }
-
-        //for each tag, we get tagCoeff number of articles (take just ids)
-        $articles = [];
-        foreach($tagsCoefficients as $tag => $value){
-            //get $value articles with $tag, should be array of ids
-            $articlesQuery = ArticleMongo::where('tags', $tag)->whereNotIn('article_id', $read_news)->orderBy('publish_at', 'desc')->limit($value)->pluck('article_id');
-            $articlesTemp = [];
-            foreach($articlesQuery as $item){
-                $articlesTemp[] = $item;
-            }
-            $articles[$tag] = $articlesTemp;
-        }
-        //remove duplicates, keep originals (original is first of its kind)
-        $seen = [];
-        foreach($articles as $tag => $articlesArray){
-            foreach($articlesArray as $key => $id){
-                if(in_array($id,$seen)){
-                    unset($articles[$tag][$key]);
-                }
-                $seen[] = $id;
-            }
-            $articles[$tag] = array_values($articles[$tag]);
-
-        }
-
-        //we now have some articles for every tag
-        //once again we recalculate how many of each we should take
-        $articlesSum = 0;
-        foreach($articles as $tag => $articlesArray){
-           $articlesSum = $articlesSum + count($articlesArray);
-        }
         $recommendedArticlesCount = config('newsrecommendation.recommended_articles_count');
-        $articlesCoefficient = [];
-        if($articlesSum != 0) {
-            foreach($articles as $tag => $articlesArray){
-                $articlesCoefficient[$tag] = (int) round((count($articlesArray)/$articlesSum)*$recommendedArticlesCount);
+        $recommendedArticlesFinal = [];
+        foreach($allTagsArray as $siteKey => $allTags){
+            $allTags = array_slice($allTags,0,$arrayLength);
+        
+            //we sum all tags values (sum of all occurrences)
+            $sumTagsValues = 0;
+            foreach($allTags as $tag => $value){
+                $sumTagsValues = $sumTagsValues+$value;
             }
-        }
-        // finnaly, we take recommended articles by the articlesCoeff
-        $recommendedArticles = [];
-        $enoughArticles = false;
-        foreach($articlesCoefficient as $tag => $value){
-            for ($x = 0; $x < $value; $x++) {
-                //break when you collect enough articles
-                if(count($recommendedArticles) >= $recommendedArticlesCount){
-                    $enoughArticles = true;
-                    break;
-                }
-                if(isset($articles[$tag][$x])){
-                    $recommendedArticles[] = $articles[$tag][$x];
-                    unset($articles[$tag][$x]);
-                }
-            }
-        }
 
-        //if there are not enough articles, add some more
-        if(!$enoughArticles){
+            //we calculate tag coefficients
+            $tagsCoefficients = [];
+            foreach($allTags as $tag => $value){
+                //here we get number that is less than 1 so we multiply by 10 and by constant from config
+                $tagsCoefficients[$tag] = (int) round(($value/$sumTagsValues)*10*$tagsConstant);
+            }
+            //for each tag, we get tagCoeff number of articles (take just ids)
+            $articles = [];
+            foreach($tagsCoefficients as $tag => $value){
+                //get $value articles with $tag, should be array of ids
+                $siteIdForQuery = (int) str_replace('site_','',$siteKey);
+                $articlesQuery = ArticleMongo::where('site_id',$siteIdForQuery)->where('tags', $tag)->whereNotIn('article_id', $read_news)->orderBy('publish_at', 'desc')->limit($value)->pluck('article_id');
+                $articlesTemp = [];
+                foreach($articlesQuery as $item){
+                    $articlesTemp[] = $item;
+                }
+                $articles[$tag] = $articlesTemp;
+            }
+            //remove duplicates, keep originals (original is first of its kind)
+            $seen = [];
             foreach($articles as $tag => $articlesArray){
-                foreach($articlesArray as $article){
+                foreach($articlesArray as $key => $id){
+                    if(in_array($id,$seen)){
+                        unset($articles[$tag][$key]);
+                    }
+                    $seen[] = $id;
+                }
+                $articles[$tag] = array_values($articles[$tag]);
+
+            }
+
+            //we now have some articles for every tag
+            //once again we recalculate how many of each we should take
+            $articlesSum = 0;
+            foreach($articles as $tag => $articlesArray){
+            $articlesSum = $articlesSum + count($articlesArray);
+            }
+            $articlesCoefficient = [];
+            if($articlesSum != 0) {
+                foreach($articles as $tag => $articlesArray){
+                    $articlesCoefficient[$tag] = (int) round((count($articlesArray)/$articlesSum)*$recommendedArticlesCount);
+                }
+            }
+            // finnaly, we take recommended articles by the articlesCoeff
+            $recommendedArticles = [];
+            $enoughArticles = false;
+            foreach($articlesCoefficient as $tag => $value){
+                for ($x = 0; $x < $value; $x++) {
+                    //break when you collect enough articles
                     if(count($recommendedArticles) >= $recommendedArticlesCount){
-                    break;
-            }
-                    $recommendedArticles[] = $article;
+                        $enoughArticles = true;
+                        break;
+                    }
+                    if(isset($articles[$tag][$x])){
+                        $recommendedArticles[] = $articles[$tag][$x];
+                        unset($articles[$tag][$x]);
+                    }
                 }
-            
             }
+
+            //if there are not enough articles, add some more
+            if(!$enoughArticles){
+                foreach($articles as $tag => $articlesArray){
+                    foreach($articlesArray as $article){
+                        if(count($recommendedArticles) >= $recommendedArticlesCount){
+                        break;
+                }
+                        $recommendedArticles[] = $article;
+                    }
+                
+                }
+            }
+
+            $recommendedArticlesFinal[$siteKey] = $recommendedArticles;
+
         }
 
-        return $recommendedArticles;
+        return $recommendedArticlesFinal;
         
     }
 
