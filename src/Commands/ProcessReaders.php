@@ -197,6 +197,7 @@ class ProcessReaders extends Command
                         if($userId != $existingUser->user_id){
                             $existingUser->user_id = $userId;
                         }
+                        $existingUser->firebase_uid = $firebaseUid;
                     }
                     $existingUser->save();
 
