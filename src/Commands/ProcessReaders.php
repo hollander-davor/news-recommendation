@@ -202,17 +202,20 @@ class ProcessReaders extends Command
 
                 //if there is no user, create one
                 }else {
-                    $userMongo = new UserMongo();
-                    $userMongo->user_id = $userId;
-                    $userMongo->read_news = json_encode($articlesIdsArray);
-                    $recommendedArticles = $this->recommendedArticles([$todaysDate => $tagsOcurrencesSortArray], $articlesIdsArray);
-                    $userMongo->news_recommendation = json_encode($recommendedArticles);
-                    $userMongo->tags = [$todaysDate => json_encode($tagsOcurrencesSortArray)];
-                    $userMongo->latest_update = $todaysDate;
-                    if($firebaseUid){
-                        $userMongo->firebase_uid = $firebaseUid;
+                   //only create user if there are tags for articles (it may happen that user read some news that have no tags)
+                   if(!empty($tagsOcurrencesSortArray)){
+                        $userMongo = new UserMongo();
+                        $userMongo->user_id = $userId;
+                        $userMongo->read_news = json_encode($articlesIdsArray);
+                        $recommendedArticles = $this->recommendedArticles([$todaysDate => $tagsOcurrencesSortArray], $articlesIdsArray);
+                        $userMongo->news_recommendation = json_encode($recommendedArticles);
+                        $userMongo->tags = [$todaysDate => json_encode($tagsOcurrencesSortArray)];
+                        $userMongo->latest_update = $todaysDate;
+                        if($firebaseUid){
+                            $userMongo->firebase_uid = $firebaseUid;
+                        }
+                        $userMongo->save();
                     }
-                    $userMongo->save();
                 }
 
                 //check if user has tags for day before n days, and delete it
