@@ -33,7 +33,7 @@ class ProcessReaders extends Command
         foreach ($redisKeys as $redisKey) {
             
             //process only redis keys starting with "reader-"
-            if (strstr($redisKey, 'reader-')) {
+            if (strstr($redisKey, config('newsrecommendation.redis_reader_prefix').'reader-')) {
 
                 //get articles ids string and convert it to array
                 $articlesString = Redis::get($redisKey);
@@ -89,10 +89,10 @@ class ProcessReaders extends Command
                 //there are two variants of redisKey, with and without firebase key
                 if(strstr($redisKey,'###')){
                     $longRedisKeyArray = explode('###',$redisKey);
-                    $userId = str_replace('reader-','',$longRedisKeyArray[0]);
+                    $userId = str_replace(config('newsrecommendation.redis_reader_prefix').'reader-','',$longRedisKeyArray[0]);
                     $firebaseUid = $longRedisKeyArray[1];
                 }else{
-                    $userId = str_replace('reader-', '', $redisKey);
+                    $userId = str_replace(config('newsrecommendation.redis_reader_prefix').'reader-', '', $redisKey);
                     $firebaseUid = false;
 
                 }

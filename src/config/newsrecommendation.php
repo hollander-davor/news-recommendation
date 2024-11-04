@@ -90,4 +90,6 @@ return [
    'site_id_from_public' => false,
     //encode article url with salt
     'url_salt' => 'news@recommendations',
+    //this key is put as prefix to redis key(usualy used to diffrentiate beta and production)
+    'redis_reader_prefix' => ''
 ];
