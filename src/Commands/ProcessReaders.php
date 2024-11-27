@@ -274,6 +274,9 @@ class ProcessReaders extends Command
         $tagsConstant = config('newsrecommendation.tags_constant');
         $recommendedArticlesCount = config('newsrecommendation.recommended_articles_count');
         $recommendedArticlesFinal = [];
+        $excludedCategories = config('newsrecommendation.exclude_categories');
+        $excludedSubcategories = config('newsrecommendation.exclude_subcategories');
+
         foreach($allTagsArray as $siteKey => $allTags){
             $allTags = array_slice($allTags,0,$arrayLength);
         
@@ -294,7 +297,21 @@ class ProcessReaders extends Command
             foreach($tagsCoefficients as $tag => $value){
                 //get $value articles with $tag, should be array of ids
                 $siteIdForQuery = (int) str_replace('site_','',$siteKey);
-                $articlesQuery = ArticleMongo::where('site_id',$siteIdForQuery)->where('tags', $tag)->whereNotIn('article_id', $read_news)->orderBy('publish_at', 'desc')->limit($value)->pluck('article_id');
+                $articlesQuery = ArticleMongo::where('site_id',$siteIdForQuery)
+                    ->where('tags', $tag)
+                    ->whereNotIn('article_id', $read_news);
+                
+                if(isset($excludedCategories[$siteKey]) && !empty($excludedCategories[$siteKey])){
+                    $articlesQuery = $articlesQuery->whereNotIn('category',$excludedCategories[$siteKey]);
+                }
+                if(isset($excludedSubcategories[$siteKey]) && !empty($excludedSubcategories[$siteKey])){
+                    $articlesQuery = $articlesQuery->whereNotIn('subcategory',$excludedSubcategories[$siteKey]);
+                }
+
+
+                $articlesQuery = $articlesQuery->orderBy('publish_at', 'desc')
+                    ->limit($value)
+                    ->pluck('article_id');
                 $articlesTemp = [];
                 foreach($articlesQuery as $item){
                     $articlesTemp[] = $item;

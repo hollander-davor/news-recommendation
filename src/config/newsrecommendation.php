@@ -91,5 +91,13 @@ return [
     //encode article url with salt
     'url_salt' => 'news@recommendations',
     //this key is put as prefix to redis key(usualy used to diffrentiate beta and production)
-    'redis_reader_prefix' => ''
+    'redis_reader_prefix' => '',
+    //categories to be excluded for each site (key must be site_{siteId})
+    'exclude_categories' => [
+        'site_1' => []
+    ],
+    //subcategories to be excluded for each site (key must be site_{siteId})
+    'exclude_subcategories' => [
+        'site_1' => []
+    ]
 ];

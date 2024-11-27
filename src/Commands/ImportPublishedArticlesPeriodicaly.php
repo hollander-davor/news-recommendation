@@ -32,11 +32,16 @@ class ImportPublishedArticlesPeriodicaly extends Command
             if(!empty($existingArticle)) {
                 continue;
             }
-            $dataNormalization = $this->dataNormalization($article);
-            if($dataNormalization){
-                $entity = new ArticleMongo();
-                $entity->create($dataNormalization);
+            try{
+                $dataNormalization = $this->dataNormalization($article);
+                if($dataNormalization){
+                    $entity = new ArticleMongo();
+                    $entity->create($dataNormalization);
+                }
+            }catch(\Exception $e){
+
             }
+            
         }
 
     }
