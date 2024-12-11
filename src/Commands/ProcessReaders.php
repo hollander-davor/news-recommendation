@@ -244,6 +244,7 @@ class ProcessReaders extends Command
      * this method returns list of recommended articles ids for given user tags
      */
     protected function recommendedArticles($userTagsArray, $read_news = []){
+        $exactTime = now()->format('Y-m-d H:i:s');
         //we set values to integers
         if(!empty($read_news)) {
             $read_news = array_map('intval', $read_news);
@@ -299,7 +300,8 @@ class ProcessReaders extends Command
                 $siteIdForQuery = (int) str_replace('site_','',$siteKey);
                 $articlesQuery = ArticleMongo::where('site_id',$siteIdForQuery)
                     ->where('tags', $tag)
-                    ->whereNotIn('article_id', $read_news);
+                    ->whereNotIn('article_id', $read_news)
+                    ->where('publish_at','<=',$exactTime);
                 
                 if(isset($excludedCategories[$siteKey]) && !empty($excludedCategories[$siteKey])){
                     $articlesQuery = $articlesQuery->whereNotIn('category',$excludedCategories[$siteKey]);
