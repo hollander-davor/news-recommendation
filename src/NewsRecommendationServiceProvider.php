@@ -8,6 +8,9 @@ use Hoks\NewsRecommendation\Commands\ImportPublishedArticles;
 use Hoks\NewsRecommendation\Commands\ImportPublishedArticlesPeriodicaly;
 use Hoks\NewsRecommendation\Observers\ArticleMongoObserver;
 use Hoks\NewsRecommendation\Commands\ProcessReaders;
+use Hoks\NewsRecommendation\Observers\PublishMongoObserver;
+use Hoks\NewsRecommendation\Commands\SyncArticles;
+
 
 class NewsRecommendationServiceProvider extends ServiceProvider{
 
@@ -19,13 +22,18 @@ class NewsRecommendationServiceProvider extends ServiceProvider{
             $this->commands([
                 ImportPublishedArticles::class,
                 ImportPublishedArticlesPeriodicaly::class,
-                ProcessReaders::class
+                ProcessReaders::class,
+                SyncArticles::class
             ]);
         }
         
         $className = config('newsrecommendation.article_model');
         if (class_exists($className)) { 
             $className::observe(ArticleMongoObserver::class); 
+        }
+
+        if (config('newsrecommendation.use_publish')) { 
+            \App\Models\ArticlePublish::observe(PublishMongoObserver::class); 
         }
     }
 

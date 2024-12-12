@@ -301,6 +301,7 @@ class ProcessReaders extends Command
                 $articlesQuery = ArticleMongo::where('site_id',$siteIdForQuery)
                     ->where('tags', $tag)
                     ->whereNotIn('article_id', $read_news)
+                    ->where('published',1)
                     ->where('publish_at','<=',$exactTime);
                 
                 if(isset($excludedCategories[$siteKey]) && !empty($excludedCategories[$siteKey])){
