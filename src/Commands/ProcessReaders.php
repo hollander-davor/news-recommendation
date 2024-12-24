@@ -99,19 +99,16 @@ class ProcessReaders extends Command
 
                 if($firebaseUid){
                     //try to find if there is user with firebase_uid
-                    $existingUser = UserMongo::where('firebase_uid', $firebaseUid)->first();
+                    $existingUser = UserMongo::where('firebase_uid', $firebaseUid)->orderBy('updated_at','desc')->first();
                     //if there is no user with firebase_uid and firebase_uid is in redis key, it could
                     //be the first login on anonymus user, so we try to find that user
                     if(!isset($existingUser) && empty($existingUser)){
-                        $existingUser = UserMongo::where('user_id', $userId)->first();
+                        $existingUser = UserMongo::where('user_id', $userId)->orderBy('updated_at','desc')->first();
                     }
                 }else{
-                    $existingUser = UserMongo::where('user_id', $userId)->first();
+                    $existingUser = UserMongo::where('user_id', $userId)->orderBy('updated_at','desc')->first();
                 }
 
-                //now we get user data on tags for this day
-                //if data does not exist, we create it (first job call for day)
-                $existingUser = UserMongo::where('user_id', $userId)->first();
 
                 if(isset($existingUser) && !empty($existingUser)) {
                     //we take all the tags that exist
