@@ -166,10 +166,10 @@ class ArticleMongoObserver
         catch(Exception $e){
             if(is_array($original)){
                 Log::info('OBSERVER_ERROR',$original);
-                Log::info('OBSERVER_ERROR_MESSAGE',$e->getMessage());
+                Log::info('OBSERVER_ERROR_MESSAGE',[$e->getMessage()]);
             }else{
                 Log::info('OBSERVER_ERROR',$original->toArray());
-                Log::info('OBSERVER_ERROR_MESSAGE',$e->getMessage());
+                Log::info('OBSERVER_ERROR_MESSAGE',[$e->getMessage()]);
             }
 
             if(is_array($changedAttributes)){
