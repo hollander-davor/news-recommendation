@@ -5,6 +5,7 @@ namespace Hoks\NewsRecommendation\Commands;
 use Illuminate\Console\Command;
 use Hoks\NewsRecommendation\Models\ArticleMongo;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class ImportPublishedArticlesPeriodicaly extends Command
 {
@@ -36,10 +37,11 @@ class ImportPublishedArticlesPeriodicaly extends Command
                 $dataNormalization = $this->dataNormalization($article);
                 if($dataNormalization){
                     $entity = new ArticleMongo();
-                    $entity->create($dataNormalization);
+                    $entity->fill($dataNormalization);
+                    $entity->save();
                 }
             }catch(\Exception $e){
-
+                Log::info('PERIODICALY_IMPORT',[$e->getMessage()]);
             }
             
         }

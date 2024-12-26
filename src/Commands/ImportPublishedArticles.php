@@ -5,6 +5,8 @@ namespace Hoks\NewsRecommendation\Commands;
 use Illuminate\Console\Command;
 use Hoks\NewsRecommendation\Models\ArticleMongo;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+
 
 class ImportPublishedArticles extends Command
 {
@@ -32,10 +34,11 @@ class ImportPublishedArticles extends Command
                 $dataNormalization = $this->dataNormalization($article);
                 if($dataNormalization){
                     $entity = new ArticleMongo();
-                    $entity->create($dataNormalization);
+                    $entity->fill($dataNormalization);
+                    $entity->save();
                 }
             }catch(\Exception $e){
-
+                Log::info('FIRST_IMPORT',[$e->getMessage()]);
             }
             
         }
