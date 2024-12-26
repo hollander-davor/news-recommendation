@@ -4,6 +4,8 @@ namespace Hoks\NewsRecommendation\Commands;
 
 use Illuminate\Console\Command;
 use Hoks\NewsRecommendation\Models\ArticleMongo;
+use Illuminate\Support\Carbon;
+
 
 class SyncArticles extends Command
 {
@@ -52,7 +54,7 @@ class SyncArticles extends Command
         $mongoSubcategory = $mongoArticle->subcategory;
         $mongoSiteId = $mongoArticle->site_id;
         $mongoPublished = $mongoArticle->published;
-        $mongoPublishAt = $mongoArticle->publish_at;
+        // $mongoPublishAt = $mongoArticle->publish_at;
         $articleId = $mongoArticle->article_id;
         //get article from articles table
         $projectArticle = \DB::table(config('newsrecommendation.articles_table_name'))->where('id',$articleId)->first();
@@ -97,7 +99,7 @@ class SyncArticles extends Command
 
             //get other values ------------------------------------
             $projectPublished = $projectArticle->published;
-            $projectPublishAt = $projectArticle->publish_at;
+            $projectPublishAt = Carbon::parse($projectArticle->publish_at)->format('Y-m-d H:i:s');
             $projectLead = $projectArticle->lead;
             $projectHeading = $projectArticle->heading;
 
@@ -121,11 +123,11 @@ class SyncArticles extends Command
                 $published = false;
             }
             //publish_at
-            if($mongoPublishAt != $projectPublishAt){
+            // if($mongoPublishAt != $projectPublishAt){
                 $publishAt = $projectPublishAt;
-            }else{
-                $publishAt = false;
-            }
+            // }else{
+            //     $publishAt = false;
+            // }
             //category
             if($mongoCategory != $projectCategoryName){
                 $category = $projectCategoryName;
