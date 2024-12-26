@@ -23,6 +23,9 @@ class ArticleMongoObserver
 
             //retrieving changed values
             $changedAttributes = $article->getDirty();
+            if(empty($changedAttributes)){
+                return ;
+            }
 
             //article site
             if(!config('newsrecommendation.site_id')){
