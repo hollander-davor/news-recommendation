@@ -23,6 +23,7 @@ class ArticleMongoObserver
 
             //retrieving changed values
             $changedAttributes = $article->getDirty();
+            Log::info("BOKI",$changedAttributes);
             if(count($changedAttributes) == 1 && isset($changedAttributes['views'])){
                 return ;
             }
