@@ -52,9 +52,12 @@ class ArticleMongoObserver
                 //article category
                 $category = \DB::table(config('newsrecommendation.categories_table_name'))->where('id', $publish->category_id)->first();
                 $categoryName = $category->name;
+                $categoryUrl = $domain . '/' . \Str::slug($categoryName);
+
                 //article subcategory
                 $subcategory = \DB::table(config('newsrecommendation.categories_table_name'))->where('id', $publish->subcategory_id)->first();
                 $subcategoryName = $subcategory->name;
+                $subcategoryUrl = $domain . '/' . \Str::slug($categoryName) . '/' . \Str::slug($subcategoryName);
             }else{
                 //article category
                 if(isset($changedAttributes['category_id'])){
