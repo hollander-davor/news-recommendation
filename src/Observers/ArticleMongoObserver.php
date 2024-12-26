@@ -5,6 +5,7 @@ namespace Hoks\NewsRecommendation\Observers;
 use Exception;
 use Hoks\NewsRecommendation\Models\ArticleMongo;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Carbon;
 
 class ArticleMongoObserver
 {
@@ -105,7 +106,7 @@ class ArticleMongoObserver
             if (isset($changedAttributes['publish_at'])) {
                 $publishAt = $changedAttributes['publish_at'];
             }else {
-                $publishAt = $original['publish_at'];
+                $publishAt = Carbon::parse($original['publish_at'])->format('Y-m-d H:i:s');
             }
             //published
             if (isset($changedAttributes['published'])) {
