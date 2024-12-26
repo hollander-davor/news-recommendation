@@ -23,7 +23,7 @@ class ArticleMongoObserver
 
             //retrieving changed values
             $changedAttributes = $article->getDirty();
-            if(empty($changedAttributes)){
+            if(count($changedAttributes) == 1 && isset($changedAttributes['views'])){
                 return ;
             }
 
