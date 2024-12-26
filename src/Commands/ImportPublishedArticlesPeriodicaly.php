@@ -131,6 +131,8 @@ class ImportPublishedArticlesPeriodicaly extends Command
                 $finalData[$column] = $subcategoryUrl;
             }elseif($column == 'article_url') {
                 $finalData[$column] = $encodedUrl;
+            }elseif($column == 'publish_at') {
+                $finalData[$column] = Carbon::parse($data->publish_at)->format('Y-m-d H:i:s');
             }else {
                 if($column == 'site_id'){
                     if(config('newsrecommendation.site_id')){
