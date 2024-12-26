@@ -54,7 +54,7 @@ class SyncArticles extends Command
         $mongoSubcategory = $mongoArticle->subcategory;
         $mongoSiteId = $mongoArticle->site_id;
         $mongoPublished = $mongoArticle->published;
-        // $mongoPublishAt = $mongoArticle->publish_at;
+        $mongoPublishAt = $mongoArticle->publish_at;
         $articleId = $mongoArticle->article_id;
         //get article from articles table
         $projectArticle = \DB::table(config('newsrecommendation.articles_table_name'))->where('id',$articleId)->first();

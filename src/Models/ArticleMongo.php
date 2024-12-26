@@ -9,6 +9,8 @@ class ArticleMongo extends Eloquent {
     protected $connection = 'mongodb';
     protected $collection = 'articles';
     protected $fillable;
+    protected $dates = ['publish_at'];
+
 
     public function __construct(array $attributes = [])
     {
