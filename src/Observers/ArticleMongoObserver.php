@@ -24,10 +24,6 @@ class ArticleMongoObserver
             //retrieving changed values
             $changedAttributes = $article->getDirty();
 
-           
-            if(count($changedAttributes) == 1 && isset($changedAttributes['views'])){
-                return ;
-            }
 
             //article site
             if(!config('newsrecommendation.site_id')){
@@ -110,8 +106,14 @@ class ArticleMongoObserver
             //publish_at
             if (isset($changedAttributes['publish_at'])) {
                 $publishAt = Carbon::parse($changedAttributes['publish_at'])->format('Y-m-d H:i:s');
+                if(strtotime(($publishAt)) === false){
+                    Log::info('MRK_2',$changedAttributes);
+                }
             }else {
                 $publishAt = Carbon::parse($original['publish_at'])->format('Y-m-d H:i:s');
+                if(strtotime(($publishAt)) === false){
+                    Log::info('MRK_3',$original);
+                }
                 // $publishAt = $original['publish_at'];
 
             }

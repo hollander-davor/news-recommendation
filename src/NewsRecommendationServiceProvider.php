@@ -27,14 +27,14 @@ class NewsRecommendationServiceProvider extends ServiceProvider{
             ]);
         }
         
-        // $className = config('newsrecommendation.article_model');
-        // if (class_exists($className)) { 
-        //     $className::observe(ArticleMongoObserver::class); 
-        // }
+        $className = config('newsrecommendation.article_model');
+        if (class_exists($className)) { 
+            $className::observe(ArticleMongoObserver::class); 
+        }
 
-        // if (config('newsrecommendation.use_publish')) { 
-        //     \App\Models\ArticlePublish::observe(PublishMongoObserver::class); 
-        // }
+        if (config('newsrecommendation.use_publish')) { 
+            \App\Models\ArticlePublish::observe(PublishMongoObserver::class); 
+        }
     }
 
     public function register(){

@@ -129,6 +129,9 @@ class ImportPublishedArticles extends Command
                 $finalData[$column] = $encodedUrl;
             }elseif($column == 'publish_at') {
                 $finalData[$column] = Carbon::parse($data->publish_at)->format('Y-m-d H:i:s');
+                if(strtotime(($finalData[$column])) === false){
+                    Log::info('MRK_1',$data->toArray());
+                }
             }else {
                 if($column == 'site_id'){
                     if(config('newsrecommendation.site_id')){
