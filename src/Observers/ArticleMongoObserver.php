@@ -110,7 +110,7 @@ class ArticleMongoObserver
                 $publishAt = Carbon::parse($changedAttributes['publish_at'])->format('Y-m-d H:i:s');
             }else {
                 $publishAt = Carbon::parse($original['publish_at'])->format('Y-m-d H:i:s');
-                $publishAt = $original['publish_at'];
+                // $publishAt = $original['publish_at'];
 
             }
             //published
