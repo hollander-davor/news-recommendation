@@ -241,7 +241,7 @@ class ProcessReaders extends Command
      * this method returns list of recommended articles ids for given user tags
      */
     protected function recommendedArticles($userTagsArray, $read_news = []){
-        $exactTime = now()->format('Y-m-d H:i:s');
+        $exactTime = now();
         //we set values to integers
         if(!empty($read_news)) {
             $read_news = array_map('intval', $read_news);
