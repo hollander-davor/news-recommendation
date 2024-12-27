@@ -23,6 +23,10 @@ class ArticleMongoObserver
 
             //retrieving changed values
             $changedAttributes = $article->getDirty();
+
+            if(isset($changedAttributes['views'])){
+                Log::info('VIEWS'.$changedAttributes['id']);
+            }
             if(count($changedAttributes) == 1 && isset($changedAttributes['views'])){
                 return ;
             }
