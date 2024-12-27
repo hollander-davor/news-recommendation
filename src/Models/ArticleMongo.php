@@ -7,7 +7,7 @@ use Jenssegers\Mongodb\Eloquent\Model as Eloquent;
 class ArticleMongo extends Eloquent {
 
     protected $connection = 'mongodb';
-    protected $collection = 'articles';
+    protected $collection = 'articles_db';
     protected $fillable;
     protected $dates = ['publish_at'];
 
