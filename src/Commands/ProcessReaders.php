@@ -180,12 +180,21 @@ class ProcessReaders extends Command
                     $readNewsOld = (array) json_decode($existingUser->read_news);
                     if(empty($readNewsOld)) {
                         //we call a method that gives us an array of recommended news ids
-                        $recommendedArticles = $this->recommendedArticles($formatedTags, $articlesIdsArray);
+                        if(config('newsrecommendation.use_weighted_algorithm')){
+                            $recommendedArticles = $this->recommendedArticlesWeighted($formatedTags, $articlesIdsArray);
+                        }else{
+                            $recommendedArticles = $this->recommendedArticles($formatedTags, $articlesIdsArray);
+                        }
                         $existingUser->news_recommendation = json_encode($recommendedArticles);
                     } else {
                         $readNewsMerge = array_merge($readNewsOld, $articlesIdsArray);
                         $readNewsMerge = array_unique($readNewsMerge);
-                        $recommendedArticles = $this->recommendedArticles($formatedTags, $readNewsMerge);
+                        if(config('newsrecommendation.use_weighted_algorithm')){
+                            $recommendedArticles = $this->recommendedArticlesWeighted($formatedTags, $readNewsMerge);
+                        }else{
+                            $recommendedArticles = $this->recommendedArticles($formatedTags, $readNewsMerge);
+
+                        }
                         $existingUser->news_recommendation = json_encode($recommendedArticles);
                     }
                     $existingUser->latest_update = $todaysDate;
@@ -205,7 +214,11 @@ class ProcessReaders extends Command
                         $userMongo = new UserMongo();
                         $userMongo->user_id = $userId;
                         $userMongo->read_news = json_encode($articlesIdsArray);
-                        $recommendedArticles = $this->recommendedArticles([$todaysDate => $tagsOcurrencesSortArray], $articlesIdsArray);
+                        if(config('newsrecommendation.use_weighted_algorithm')){
+                            $recommendedArticles = $this->recommendedArticlesWeighted([$todaysDate => $tagsOcurrencesSortArray], $articlesIdsArray);
+                        }else{
+                            $recommendedArticles = $this->recommendedArticles([$todaysDate => $tagsOcurrencesSortArray], $articlesIdsArray);
+                        }
                         $userMongo->news_recommendation = json_encode($recommendedArticles);
                         $userMongo->tags = [$todaysDate => json_encode($tagsOcurrencesSortArray)];
                         $userMongo->latest_update = $todaysDate;
@@ -379,6 +392,90 @@ class ProcessReaders extends Command
 
         return $recommendedArticlesFinal;
         
+    }
+
+    /**
+     * recommendations are determined using weighted matrix algorithm
+     */
+    public function recommendedArticlesWeighted($userTagsArray, $read_news = []){
+        //we set values to integers
+        if(!empty($read_news)) {
+            $read_news = array_map('intval', $read_news);
+        }
+        //we merge tags for all days for one site in one element of an array
+        $allTagsArray = [];
+        //foreach trough days
+        foreach($userTagsArray as $oneDayTagsArray){
+            //foreach trough sites
+            foreach($oneDayTagsArray as $siteKey => $oneDayOneSiteTags){
+                //foreach trough tags for one day for one site
+                $tempArray = [];
+                foreach($oneDayOneSiteTags as $tag => $value){
+                    if(isset($allTagsArray[$siteKey][$tag])){
+                        $tempArray[$tag] = $allTagsArray[$siteKey][$tag]+$value;
+                    }else{
+                        $tempArray[$tag] = $value;
+                    }
+                }
+                //sort tags by its occurrence
+                arsort($tempArray);
+                $allTagsArray[$siteKey] = $tempArray;
+            }
+            
+        }
+        //based on lowbar, we cut off part of array
+        $arrayLength = config('newsrecommendation.tags_array_length');
+        $recommendedArticlesCount = config('newsrecommendation.recommended_articles_count');
+        $recommendedArticlesFinal = [];
+        $excludedCategories = config('newsrecommendation.exclude_categories');
+        $excludedSubcategories = config('newsrecommendation.exclude_subcategories');
+
+        foreach($allTagsArray as $siteKey => $allTags){
+            $allTags = array_slice($allTags,0,$arrayLength);
+            //takes first tags_array_length tags
+            //get summed weighted matrix
+            $articlesQuery = ArticleMongo::where('published',1)->whereNotIn('article_id',$read_news);
+            if(isset($excludedCategories[$siteKey]) && !empty($excludedCategories[$siteKey])){
+                $articlesQuery = $articlesQuery->whereNotIn('category',$excludedCategories[$siteKey]);
+            }
+            if(isset($excludedSubcategories[$siteKey]) && !empty($excludedSubcategories[$siteKey])){
+                $articlesQuery = $articlesQuery->whereNotIn('subcategory',$excludedSubcategories[$siteKey]);
+            }
+            $allOtherArticles = $articlesQuery->whereBetween('publish_at',[now()->subDays(10),now()])->get();
+
+
+            $weightedArticlesValues = [];
+            foreach($allOtherArticles as $article){
+                $articleTags = $article->tags;
+                foreach($allTags as $key => $count){
+                    if(in_array($key,$articleTags)){
+                        if(isset($weightedArticlesValues[$article->id])){
+                            $weightedArticlesValues[$article->article_id] += $count;
+                        }else{
+                            $weightedArticlesValues[$article->article_id] = $count;
+                        }
+                    }
+                }
+            }
+
+            arsort($weightedArticlesValues);
+
+            $recommendedArticles = [];
+            $counter = 0;
+
+            foreach($weightedArticlesValues as $key => $articleItem){
+                if($counter > $recommendedArticlesCount-1){
+                    break;
+                }
+                $recommendedArticles[] = $key;
+                $counter++;
+            }
+
+            $recommendedArticlesFinal[$siteKey] = $recommendedArticles;
+
+        }
+
+        return $recommendedArticlesFinal;
     }
 
    

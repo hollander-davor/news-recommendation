@@ -99,5 +99,8 @@ return [
     //subcategories to be excluded for each site (key must be site_{siteId})
     'exclude_subcategories' => [
         'site_1' => []
-    ]
+    ],
+    //if true, recommendations will be determined by weighted matrix alghorithm
+    //NOTE: this may not create recommended_articles_count, so make sure to add some articles by some criteria (most read, latest etc.)
+    'use_weighted_algorithm' => true
 ];
