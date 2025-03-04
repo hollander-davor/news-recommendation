@@ -138,7 +138,7 @@ class ArticleMongoObserver
                 }
             }
 
-            $articleUrl = $domain . '/' . \Str::slug($categoryName) . '/' . \Str::slug($subcategoryName) . '/' . $original['id'] . '/' . \Str::slug(!empty($original['og_title']) ? $original['og_title'] : $heading) .'/vest';
+            $articleUrl = $domain . '/' . \Str::slug($categoryName) . '/' . \Str::slug($subcategoryName) . '/' . $original['id'] . '/' . \Str::slug(!empty($original['og_title']) ? $original['og_title'] : $heading) . '/' . config('newsrecommendation.article_trailing_string');
             //get salt from config
             $salt = config('newsrecommendation.url_salt');
             $urlWithSalt = $salt . '|' . $articleUrl;

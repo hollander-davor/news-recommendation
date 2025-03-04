@@ -102,5 +102,7 @@ return [
     ],
     //if true, recommendations will be determined by weighted matrix alghorithm
     //NOTE: this may not create recommended_articles_count, so make sure to add some articles by some criteria (most read, latest etc.)
-    'use_weighted_algorithm' => true
+    'use_weighted_algorithm' => true,
+    //trailing string for article url
+    'article_trailing_string' => 'vest', //vest is serbian for news, or news in english
 ];

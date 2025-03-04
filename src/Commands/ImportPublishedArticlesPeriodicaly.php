@@ -96,7 +96,7 @@ class ImportPublishedArticlesPeriodicaly extends Command
                 $subcategoryUrl = $domain . '/' . \Str::slug($categoryName) . '/' . \Str::slug($subcategoryName);
             }
         }
-        $articleUrl = $domain . '/' . \Str::slug($categoryName) . '/' . \Str::slug($subcategoryName) . '/' . $data->id . '/' . \Str::slug(!empty($data->og_title) ? $data->og_title : $data->heading) .'/vest';
+        $articleUrl = $domain . '/' . \Str::slug($categoryName) . '/' . \Str::slug($subcategoryName) . '/' . $data->id . '/' . \Str::slug(!empty($data->og_title) ? $data->og_title : $data->heading) . '/' . config('newsrecommendation.article_trailing_string');
         //get salt from config
         $salt = config('newsrecommendation.url_salt');
         $urlWithSalt = $salt . '|' . $articleUrl;
