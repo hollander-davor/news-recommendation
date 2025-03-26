@@ -432,8 +432,8 @@ class ProcessReaders extends Command
 
         foreach($allTagsArray as $siteKey => $allTags){
             $allTags = array_slice($allTags,0,$arrayLength);
-            //takes first tags_array_length tags
-            //get summed weighted matrix
+            //takes first tags_array_length  tags
+            //get summed weighted matrix 
             $articlesQuery = ArticleMongo::where('published',1)->whereNotIn('article_id',$read_news);
             if(isset($excludedCategories[$siteKey]) && !empty($excludedCategories[$siteKey])){
                 $articlesQuery = $articlesQuery->whereNotIn('category',$excludedCategories[$siteKey]);
