@@ -105,4 +105,6 @@ return [
     'use_weighted_algorithm' => true,
     //trailing string for article url
     'article_trailing_string' => 'vest', //vest is serbian for news, or news in english
+    //if we use weighted algorithm, how old articles will we take, default is 10 days
+    'weighted_algorithm_days' => 10
 ];

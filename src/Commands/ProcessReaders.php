@@ -441,7 +441,7 @@ class ProcessReaders extends Command
             if(isset($excludedSubcategories[$siteKey]) && !empty($excludedSubcategories[$siteKey])){
                 $articlesQuery = $articlesQuery->whereNotIn('subcategory',$excludedSubcategories[$siteKey]);
             }
-            $allOtherArticles = $articlesQuery->whereBetween('publish_at',[now()->subDays(10),now()])->get();
+            $allOtherArticles = $articlesQuery->whereBetween('publish_at',[now()->subDays(config('newsrecommendation.weighted_algorithm_days')),now()])->get();
 
 
             $weightedArticlesValues = [];
