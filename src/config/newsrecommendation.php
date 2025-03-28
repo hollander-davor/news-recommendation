@@ -106,5 +106,10 @@ return [
     //trailing string for article url
     'article_trailing_string' => 'vest', //vest is serbian for news, or news in english
     //if we use weighted algorithm, how old articles will we take, default is 10 days
-    'weighted_algorithm_days' => 10
+    'weighted_algorithm_days' => 10,
+    //limit how many users will be evaluated (boolean)
+    'limit_users' => false,
+    //number of users to be evaluated, only if limit_users is true
+    //NOTE: this is not the number of users that will be saved, but the number of users that will be evaluated
+    'limit_users_count' => 10000,
 ];

@@ -30,7 +30,17 @@ class ProcessReaders extends Command
         $todaysDate = now()->format('d-m-Y');
 
         $redisKeys = Redis::keys('*');
+        //set counter if we are going to limit evaluated users
+        if(config('newsrecommendation.limit_users')){
+            $counter = 0;
+        }
         foreach ($redisKeys as $redisKey) {
+            //check if we reached evaluated users limit
+            if(config('newsrecommendation.limit_users')){
+                if($counter >= config('newsrecommendation.limit_users_count')){
+                    break;
+                }
+            }
             
             //process only redis keys starting with "reader-"
             if (strstr($redisKey, config('newsrecommendation.redis_reader_prefix').'reader-')) {
@@ -245,6 +255,10 @@ class ProcessReaders extends Command
 
                 //delete redis key
                 Redis::command('DEL', [$redisKey]);
+            }
+            //increment counter if we are going to limit evaluated users
+            if(config('newsrecommendation.limit_users')){
+                $counter++;
             }
         }
     }
