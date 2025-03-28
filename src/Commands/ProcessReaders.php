@@ -29,21 +29,22 @@ class ProcessReaders extends Command
         //get todays date
         $todaysDate = now()->format('d-m-Y');
 
-        $redisKeys = Redis::keys('*');
+        $redisKeys = Redis::keys(config('newsrecommendation.redis_reader_prefix').'reader-'.'*');
         //set counter if we are going to limit evaluated users
         if(config('newsrecommendation.limit_users')){
             $counter = 0;
         }
         foreach ($redisKeys as $redisKey) {
-            //check if we reached evaluated users limit
-            if(config('newsrecommendation.limit_users')){
-                if($counter >= config('newsrecommendation.limit_users_count')){
-                    break;
-                }
-            }
             
-            //process only redis keys starting with "reader-"
-            if (strstr($redisKey, config('newsrecommendation.redis_reader_prefix').'reader-')) {
+            
+            // //process only redis keys starting with "reader-"
+            // if (strstr($redisKey, config('newsrecommendation.redis_reader_prefix').'reader-')) {
+                //check if we reached evaluated users limit
+                if(config('newsrecommendation.limit_users')){
+                    if($counter >= config('newsrecommendation.limit_users_count')){
+                        break;
+                    }
+                }
 
                 //get articles ids string and convert it to array
                 $articlesString = Redis::get($redisKey);
@@ -255,11 +256,12 @@ class ProcessReaders extends Command
 
                 //delete redis key
                 Redis::command('DEL', [$redisKey]);
-            }
-            //increment counter if we are going to limit evaluated users
-            if(config('newsrecommendation.limit_users')){
-                $counter++;
-            }
+                //increment counter if we are going to limit evaluated users
+                if(config('newsrecommendation.limit_users')){
+                    $counter++;
+                }
+            // }
+            
         }
     }
 
