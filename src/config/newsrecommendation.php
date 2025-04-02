@@ -118,6 +118,8 @@ return [
     //Once newsrecommendation config is ready, run "php artisan generate:config-json"
     //NOTE that python command uses weighted algorithm
     'use_python' => false,
+    //number of threads that can run at the same time
+    'max_workers' => 100,
     'users_collection' => 'users',
     'articles_collection' => 'articles_db'
 ];
