@@ -10,6 +10,7 @@ use Hoks\NewsRecommendation\Observers\ArticleMongoObserver;
 use Hoks\NewsRecommendation\Commands\ProcessReaders;
 use Hoks\NewsRecommendation\Observers\PublishMongoObserver;
 use Hoks\NewsRecommendation\Commands\SyncArticles;
+use Hoks\NewsRecommendation\Commands\GenerateConfigJson;
 
 
 class NewsRecommendationServiceProvider extends ServiceProvider{
@@ -23,7 +24,8 @@ class NewsRecommendationServiceProvider extends ServiceProvider{
                 ImportPublishedArticles::class,
                 ImportPublishedArticlesPeriodicaly::class,
                 ProcessReaders::class,
-                SyncArticles::class
+                SyncArticles::class,
+                GenerateConfigJson::class
             ]);
         }
         

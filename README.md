@@ -25,6 +25,10 @@
 6. Set up Redis to take data from user (see example bellow)
 7. Use package :D
 
+NOTE:
+Version 2.00 includes option to proces readers using python multithread. You must have python on server as well as redis and pymongo installed.
+Set 'use_python' in config to true, and follow instructions there (run command "php artisan generate:config-json")
+
 
 
 

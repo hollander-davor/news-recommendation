@@ -112,4 +112,12 @@ return [
     //number of users to be evaluated, only if limit_users is true
     //NOTE: this is not the number of users that will be saved, but the number of users that will be evaluated
     'limit_users_count' => 10000,
+    //do you want to use  python multithreaded command?
+    //if this is set to true, You need to set users_collection (collection for MongoDB users)
+    //and articles_collection (collection for MongoDB articles). 
+    //Once newsrecommendation config is ready, run "php artisan generate:config-json"
+    //NOTE that python command uses weighted algorithm
+    'use_python' => false,
+    'users_collection' => 'users',
+    'articles_collection' => 'articles_db'
 ];
