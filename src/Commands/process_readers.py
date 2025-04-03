@@ -38,10 +38,10 @@ mongo_password = os.getenv('DB_PASSWORD_MONGO', 'cubes')  # Mongo password
 
 # Redis connection
 redis_client = redis.Redis(
-   redis_host,
-    redis_port,
-    redis_password,
-    redis_db,
+    host=redis_host,
+    port=redis_port,
+    password=redis_password,  # Ensure password is correctly passed
+    db=redis_db,
     decode_responses=True
 )
 # MongoDB connection
