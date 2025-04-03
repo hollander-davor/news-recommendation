@@ -40,6 +40,8 @@ mongo_password = os.getenv('DB_PASSWORD_MONGO', 'cubes')  # Mongo password
 redis_client = redis.Redis(
    redis_host,
     redis_port,
+    redis_password,
+    redis_db,
     decode_responses=True
 )
 # MongoDB connection
