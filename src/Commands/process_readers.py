@@ -251,7 +251,7 @@ def cleanup_old_data(user_id):
 def main():
     """Main function to fetch and process readers from Redis using multithreading."""
     redis_keys = redis_client.keys(config["redis_reader_prefix"] + "reader-*")
-    max_users = config.get("limit_users", len(redis_keys))
+    max_users = config.get("limit_users_count", len(redis_keys))
     with ThreadPoolExecutor(max_workers=config["max_workers"]) as executor:
         executor.map(process_reader, redis_keys[:max_users])
 
